@@ -19,12 +19,14 @@ ACCENT = "accent"
 
 # --- blocs de texte -------------------------------------------------------
 # mode "punch" : les mots claquent un par un, tres vite
+# entry "fly"  : ils arrivent en glissant des cotes, en alternance
 # mode "slam"  : le bloc entier tombe et s'ecrase (cassure de rythme)
 
 SEGMENTS = [
     {
         "key": "s1",
         "mode": "punch",
+        "entry": "fly",
         "color": WHITE,
         "lines": [
             [("ON A", 0.5), ("TOUS", 1.0)],
@@ -48,6 +50,7 @@ SEGMENTS = [
     {
         "key": "s3",
         "mode": "punch",
+        "entry": "fly",
         "color": WHITE,
         "lines": [
             [("OU ON", 0.5), ("EST", 1.0)],
@@ -70,6 +73,7 @@ SEGMENTS = [
     {
         "key": "s5",
         "mode": "punch",
+        "entry": "fly",
         "color": WHITE,
         "accent": {"TOUT DE", "SUITE ?"},
         "lines": [
@@ -87,7 +91,7 @@ SEGMENTS = [
 ZEN_IN = 16.0          # flash + logo
 ZEN_SHRINK = 18.52     # le bloc marque recule
 ZEN_SHRINK_D = 0.40
-FINAL_IN = 19.0        # carton "BORDEAUX — 20 AOÛT"
+FINAL_IN = 19.0        # carton "Lance 20 août à Bordeaux"
 
 
 def segment(key):

@@ -15,23 +15,23 @@ H.264 (yuv420p) + AAC stéréo 48 kHz.
 | Format | 9:16 vertical, 1080×1920, 60 fps |
 | Fond | bleu nuit profond, dégradé `#0A0F2A` → `#03050E`, halo central, vignette, grain léger |
 | Police | Anton — capitales, grotesque condensée très grasse |
-| Composition | blocs façon kinetic typography : lignes empilées serrées, chaque ligne étirée sur toute la largeur, contraste de tailles entre mots de liaison et mots clés |
+| Composition | blocs façon kinetic typography : lignes empilées serrées, chaque ligne étirée sur 816 px de large (marges franches sur les côtés), contraste de tailles entre mots de liaison et mots clés |
 | Couleur de base | blanc cassé `#F5F7FC`, gris froid `#949EBA` sur les temps qui retombent |
-| Accent | orange `#FA8C19`, repris du logo, réservé aux mots clés : `TOUT DE SUITE ?`, `ZENVY`, `20 AOÛT` |
-| Marque | logo Zenvy détouré + mot ZENVY interlettré, halo orange pulsé |
+| Accent | orange `#FA8C19`, repris du logo, réservé aux mots clés : `TOUT DE SUITE ?` et `20 août` |
+| Marque | logo Zenvy détouré + mot « Zenvy » en blanc, halo orange pulsé |
 | Son | ambiance minimaliste sans paroles : drone sub, nappe filtrée, pulsations qui accélèrent, ticks sur chaque mot, whooshes sur les transitions, whoosh + pop sur la reveal |
 
 ## Séquence et timing
 
 | Temps | Texte | Animation |
 |---|---|---|
-| 0 – 4 s | *On a tous ce moment où on veut sortir…* | les mots claquent un par un toutes les 65 ms avec traînée verticale, bloc en place en ~0,5 s, léger push-in pendant la tenue, sortie en whip vers la gauche |
+| 0 – 4 s | *On a tous ce moment où on veut sortir…* | les mots arrivent en glissant des côtés en alternance, toutes les 65 ms, avec un vrai filé de mouvement ; bloc en place en ~0,5 s, push-in pendant la tenue, sortie en vrille vers la gauche |
 | 4 – 7 s | *…mais personne n'est dispo.* | cassure : le bloc tombe en 0,16 s avec flou de mouvement, s'écrase à l'atterrissage (squash amorti, pieds ancrés), secousse caméra, gris froid, sortie vers le haut |
-| 7 – 10 s | *Ou on est dispo…* | reprise, cadence 60 ms, sortie en whip vers la droite |
+| 7 – 10 s | *Ou on est dispo…* | reprise, cadence 60 ms, sortie en vrille vers la droite |
 | 10 – 13 s | *…mais on sait pas où aller.* | même mécanique de chute que la première |
 | 13 – 16 s | *Et si on savait tout, tout de suite ?* | cadence 48 ms, push-in plus marqué, accent orange sur « TOUT DE SUITE ? », sortie en zoom vers la caméra |
-| 16 – 19 s | **logo + ZENVY** | flash, pop d'échelle avec dépassement, interlettrage qui se resserre, halo orange pulsé, whoosh + pop sonore |
-| 19 – 20 s | *BORDEAUX — 20 AOÛT* | la marque recule en haut, filet accent + carton final fixe |
+| 16 – 19 s | **logo + Zenvy** | flash, pop d'échelle avec dépassement, interlettrage qui se resserre, halo orange pulsé, whoosh + pop sonore |
+| 19 – 20 s | *Lance 20 août à Bordeaux* | la marque recule en haut, filet accent + carton final fixe |
 
 Le rythme accélère en continu jusqu'à la révélation (65 → 60 → 48 ms entre les
 mots, pulsations audio de 2 s à 0,45 s), puis se stabilise sur le carton final.

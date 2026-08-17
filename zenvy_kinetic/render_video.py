@@ -47,9 +47,9 @@ COLORS = {
 ACCENT = COLORS[TM.ACCENT]
 
 CX = W // 2
-BLOCK_W = 936          # largeur utile des blocs de texte
-BLOCK_Y = 968          # centre vertical des blocs
-MAX_SIZE = 300         # garde-fou sur les lignes d'un seul mot court
+BLOCK_W = 816          # largeur utile des blocs : marges franches sur les cotes
+BLOCK_Y = 962          # centre vertical des blocs
+MAX_SIZE = 235         # garde-fou sur les lignes d'un seul mot court
 BASE_SIZE = 120        # taille de reference avant etirement
 
 # ---------------------------------------------------------------- easing
@@ -198,28 +198,69 @@ def paste(canvas, im, cx, cy, alpha=1.0):
                                 int(round(cy - im.height / 2))))
 
 
-def transform(g, scale=1.0, blur=0.0, sx=1.0, sy=1.0):
+def transform(g, scale=1.0, blur=0.0, sx=1.0, sy=1.0, rot=0.0):
     im = g.img if hasattr(g, "img") else g
     tw = max(1, int(round(im.width * scale * sx)))
     th = max(1, int(round(im.height * scale * sy)))
     if (tw, th) != im.size:
         im = im.resize((tw, th), Image.BILINEAR)
+    if abs(rot) > 0.15:
+        im = im.rotate(rot, resample=Image.BILINEAR, expand=True)
     if blur > 0.35:
         im = im.filter(ImageFilter.GaussianBlur(blur))
     return im
 
 
-def paste_mb(canvas, im, cx, cy, alpha, vx, vy, samples=8):
-    """Flou de mouvement par accumulation le long du vecteur vitesse."""
-    d = math.hypot(vx, vy)
-    if d < 2.0 or samples <= 1:
-        paste(canvas, im, cx, cy, alpha)
-        return
-    n = min(samples, max(2, int(d / 7)))
-    a = alpha / n
-    for i in range(n):
-        f = (i / (n - 1) - 0.5)
-        paste(canvas, im, cx + vx * f, cy + vy * f, a)
+def rot_point(x, y, cx, cy, deg):
+    """Rotation d'un point autour de (cx, cy), meme sens que Image.rotate."""
+    if abs(deg) < 0.05:
+        return x, y
+    r = math.radians(deg)
+    c, s = math.cos(r), math.sin(r)
+    dx, dy = x - cx, y - cy
+    return cx + dx * c + dy * s, cy - dx * s + dy * c
+
+
+MAX_SMEAR = 420
+
+
+def axis_blur(im, length, axis):
+    """Vrai file de mouvement : moyenne glissante le long d'un axe.
+
+    Filtre box par somme cumulee sur l'alpha premultiplie — beaucoup plus
+    propre qu'une accumulation de copies, qui laisse des images fantomes.
+    L'image grandit de la longueur du file pour que la trainee deborde.
+    """
+    k = int(min(abs(length), MAX_SMEAR))
+    if k < 3:
+        return im
+    a = np.asarray(im, dtype=np.float32)
+    al = a[..., 3:4] / 255.0
+    arr = np.concatenate([a[..., :3] * al, a[..., 3:4]], axis=2)  # premultiplie
+
+    pad = ((0, 0), (k, k), (0, 0)) if axis == 0 else ((k, k), (0, 0), (0, 0))
+    arr = np.pad(arr, pad)
+    cs = np.cumsum(arr, axis=axis)
+    zero = np.zeros_like(np.take(cs, [0], axis=axis))
+    cs = np.concatenate([zero, cs], axis=axis)
+    n = cs.shape[axis]
+    hi = np.take(cs, range(k, n), axis=axis)
+    lo = np.take(cs, range(0, n - k), axis=axis)
+    out = (hi - lo) / k
+
+    alpha = np.clip(out[..., 3:4], 0, 255)
+    rgb = np.where(alpha > 0.5, out[..., :3] / np.maximum(alpha / 255.0, 1e-4), 0)
+    res = np.concatenate([np.clip(rgb, 0, 255), alpha], axis=2)
+    return Image.fromarray(res.astype(np.uint8), "RGBA")
+
+
+def paste_motion(canvas, im, cx, cy, alpha, vx, vy):
+    """Colle un calque avec un file de mouvement sur l'axe dominant."""
+    if abs(vx) >= abs(vy):
+        im = axis_blur(im, abs(vx), 0)
+    else:
+        im = axis_blur(im, abs(vy), 1)
+    paste(canvas, im, cx, cy, alpha)
 
 
 # ---------------------------------------------------------------- decor
@@ -337,9 +378,9 @@ def draw_brand(canvas, t, ox, oy):
 
     # le mot reste solidaire du logo : il s'ecarte proportionnellement a l'echelle
     word_cy = MARK_Y + dy + (WORD_Y - MARK_Y) * scale
-    track = WORD_TRACK + 60 * (1 - ease_out_expo(clamp01((t - TM.ZEN_IN) / 0.45)))
-    draw_tracked(canvas, "ZENVY", WORD_SIZE, ACCENT, word_cy, scale, a, track,
-                 ox, oy + entry, blur)
+    track = WORD_TRACK + 42 * (1 - ease_out_expo(clamp01((t - TM.ZEN_IN) / 0.45)))
+    draw_tracked(canvas, "Zenvy", WORD_SIZE, COLORS[TM.WHITE], word_cy, scale, a,
+                 track, ox, oy + entry, blur)
 
 
 def draw_final(canvas, t, ox, oy):
@@ -351,14 +392,14 @@ def draw_final(canvas, t, ox, oy):
 
     size = 62
     fnt = font(size)
-    track = 7.0
-    parts = [("BORDEAUX", COLORS[TM.WHITE]), ("—", COLORS[TM.DIM]), ("20 AOÛT", ACCENT)]
-    gap = fnt.getlength(" ") * 1.6
+    track = 3.0
+    parts = [("Lance", COLORS[TM.WHITE]), ("20 août", ACCENT), ("à Bordeaux", COLORS[TM.WHITE])]
+    gap = fnt.getlength(" ")
     widths = [sum(fnt.getlength(c) for c in txt) + track * (len(txt) - 1)
               for txt, _ in parts]
     total = sum(widths) + gap * (len(parts) - 1)
     asc, _ = fnt.getmetrics()
-    bb = fnt.getbbox("BORDEAUX")
+    bb = fnt.getbbox("Lance à Bordeaux")
     baseline = FINAL_Y - ((bb[1] + bb[3]) / 2 - asc)
 
     # filet accent au-dessus du carton
@@ -390,6 +431,10 @@ def seg_alive(seg, t):
     return start <= t <= end
 
 
+# angle de vrille de la sortie, propre a chaque segment
+SPIN = {"s1": 19.0, "s2": -15.0, "s3": -19.0, "s4": 15.0, "s5": 5.0}
+
+
 def draw_segment(canvas, seg, t, ox, oy):
     if not seg_alive(seg, t):
         return
@@ -401,41 +446,58 @@ def draw_segment(canvas, seg, t, ox, oy):
     if seg["key"] == "s5":
         push = 1.0 + 0.11 * ease_in_out_cubic(hold)   # le ton monte
 
-    # sortie : whip lateral ou zoom avant
+    # sortie : le bloc part en vrille avec du flou, ou fonce vers la camera
     op = clamp01((t - seg["out"]) / seg["outdur"])
     wx, wy = seg["whip"]
     out_a = 1.0 - ease_in_quad(op) ** 0.85
     e = ease_in_quad(op)
     off_x, off_y = wx * 1180.0 * e, wy * 900.0 * e
     vx, vy = wx * 240.0 * op, wy * 200.0 * op
+    spin = SPIN.get(seg["key"], 0.0) * e
     if seg["key"] == "s5":
         push *= 1.0 + 1.05 * e                        # explose vers la camera
         vx = vy = 0.0
+    else:
+        push *= 1.0 + 0.28 * e
+
+    fly = seg.get("entry") == "fly"
 
     for i, it in enumerate(items):
+        dx = mbx = mby = wrot = 0.0
         if seg["mode"] == "punch":
             p = clamp01((t - (seg["start"] + i * seg["stagger"])) / seg["punch"])
             if p <= 0:
                 continue
             a = clamp01(p / 0.30) * out_a
-            s = push * (1.0 + 0.30 * (1 - ease_out_expo(p)))
-            dy = 34.0 * (1 - ease_out_expo(p))
-            mb = 150.0 * (1 - p) ** 2          # trainee verticale du claquement
-            blur = 3.0 * (1 - clamp01(p / 0.35))
+            rem = 1 - ease_out_expo(p)
             sx = sy = 1.0
+            if fly:
+                # le mot arrive en glissant d'un cote, en alternance
+                side = -1.0 if i % 2 == 0 else 1.0
+                dx = side * 1020.0 * rem
+                mbx = side * 640.0 * (1 - p) ** 1.4   # trainee horizontale
+                wrot = side * 4.5 * rem
+                s = push * (1.0 + 0.06 * rem)
+                dy = 0.0
+                blur = 2.0 * (1 - clamp01(p / 0.30))
+            else:
+                s = push * (1.0 + 0.30 * rem)
+                dy = 34.0 * rem
+                mby = -150.0 * (1 - p) ** 2
+                blur = 3.0 * (1 - clamp01(p / 0.35))
         else:
             land = TM.land_time(seg)
             if t < land:
                 p = clamp01((t - seg["start"]) / seg["fall"])
                 a = clamp01(p / 0.35) * out_a
                 dy = -420.0 * (1 - ease_in_quad(p))
-                mb = 300.0 * (1 - p)           # trainee de la chute
+                mby = -300.0 * (1 - p)             # trainee de la chute
                 s, blur, sx, sy = push, 1.5, 1.0, 1.0
             else:
                 u = t - land
                 q = math.exp(-u * 9.0) * math.cos(2 * math.pi * 3.2 * u)
                 sx, sy = 1.0 + 0.13 * q, 1.0 - 0.20 * q
-                a, dy, mb, blur, s = out_a, 0.0, 0.0, 0.0, push
+                a, dy, blur, s = out_a, 0.0, 0.0, push
 
         cx = CX + (it["cx"] - CX) * s
         cy = BLOCK_Y + (it["cy"] - BLOCK_Y) * s
@@ -444,10 +506,11 @@ def draw_segment(canvas, seg, t, ox, oy):
             bottom_s = BLOCK_Y + (bottom - BLOCK_Y) * s
             cy = bottom_s - (bottom_s - cy) * sy
             cx = CX + (cx - CX) * sx
+        cx, cy = rot_point(cx, cy, CX, BLOCK_Y, spin)
 
-        im = transform(it["g"], s, blur + 4.0 * op, sx, sy)
-        paste_mb(canvas, im, cx + off_x + ox, cy + dy + off_y + oy, a,
-                 vx, vy - mb)
+        im = transform(it["g"], s, blur + 4.0 * op, sx, sy, spin + wrot)
+        paste_motion(canvas, im, cx + dx + off_x + ox, cy + dy + off_y + oy, a,
+                     vx + mbx, vy + mby)
 
 
 # ---------------------------------------------------------------- frame
