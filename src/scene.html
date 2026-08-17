@@ -4,17 +4,23 @@
 <meta charset="utf-8">
 <title>Zenvy — Kinetic Typography</title>
 <style>
+  /* Anton : grotesque ultra-grasse, capitales serrées (réf. affiche « ANIMATION DE TEXTE ») */
   @font-face {
-    font-family: 'InterKT';
-    src: url('../assets/fonts/Inter-Bold.ttf') format('truetype');
-    font-weight: 700;
-    font-style: normal;
+    font-family: 'AntonKT';
+    src: url('../assets/fonts/Anton-latin.woff2') format('woff2');
+    unicode-range: U+0000-00FF, U+2000-206F, U+2019, U+2026;
+    font-weight: 400;
+  }
+  @font-face {
+    font-family: 'AntonKT';
+    src: url('../assets/fonts/Anton-latin-ext.woff2') format('woff2');
+    unicode-range: U+0100-024F, U+1E00-1EFF;
+    font-weight: 400;
   }
   @font-face {
     font-family: 'InterKT';
     src: url('../assets/fonts/Inter-ExtraBold.ttf') format('truetype');
     font-weight: 800;
-    font-style: normal;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -43,44 +49,44 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 0 80px 120px;   /* remonte légèrement le bloc : zone sûre Reels/TikTok */
+    padding: 0 60px 110px;          /* bloc remonté : zone sûre Reels / TikTok */
     opacity: 0;
-    will-change: opacity, transform;
+    font-family: 'AntonKT', 'InterKT', 'Helvetica Neue', Arial, sans-serif;
+    font-weight: 400;
+    letter-spacing: -0.012em;
+    color: #FFFFFF;
+    text-transform: uppercase;
+    will-change: opacity, transform, filter;
   }
 
   .line {
     display: block;
     white-space: nowrap;
     text-align: center;
-    line-height: 1.06;
+    line-height: 0.93;              /* lignes empilées serrées, façon affiche */
   }
 
-  .seq {
-    font-family: 'InterKT', 'Helvetica Neue', Arial, sans-serif;
-    font-weight: 800;
-    letter-spacing: -0.025em;
-    color: #FFFFFF;
-    text-transform: uppercase;
-  }
+  /* les capitales accentuées (Ù, Û…) dépassent la hauteur de capitale :
+     on leur réserve un peu d'air pour éviter la collision avec la ligne du dessus */
+  .line.acc { padding-top: 0.30em; }
 
   .w {
     display: inline-block;
-    margin: 0 0.13em;
+    margin: 0 0.055em;
     will-change: transform, opacity, filter;
-    transform-origin: 50% 60%;
+    transform-origin: 50% 62%;
   }
 
   .orange { color: #FF8A1E; }
   .purple { color: #8B31F4; }
 
-  /* Hero word : dégradé violet -> orange en diagonale */
+  /* Mot final : dégradé violet -> orange en diagonale */
   #zenvyWord {
-    background-image: linear-gradient(105deg, #8B31F4 8%, #A93BD8 38%, #F2601F 72%, #FF9A1E 100%);
+    background-image: linear-gradient(105deg, #8B31F4 6%, #A93BD8 36%, #F2601F 72%, #FF9A1E 100%);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
     color: transparent;
-    letter-spacing: -0.035em;
   }
 
   #flash {
@@ -97,47 +103,49 @@
 </head>
 <body>
 <div id="stage">
-  <!-- Les séquences sont injectées ici -->
   <div id="flash"></div>
 </div>
 
 <svg class="filters" aria-hidden="true">
   <defs>
-    <filter id="mb1" x="-20%" y="-60%" width="140%" height="220%">
-      <feGaussianBlur stdDeviation="0 2"/>
-    </filter>
-    <filter id="mb2" x="-20%" y="-60%" width="140%" height="220%">
-      <feGaussianBlur stdDeviation="0 4"/>
-    </filter>
-    <filter id="mb3" x="-20%" y="-60%" width="140%" height="220%">
-      <feGaussianBlur stdDeviation="0 7"/>
-    </filter>
-    <filter id="mb4" x="-20%" y="-60%" width="140%" height="220%">
-      <feGaussianBlur stdDeviation="0 11"/>
-    </filter>
-    <filter id="mb5" x="-20%" y="-60%" width="140%" height="220%">
-      <feGaussianBlur stdDeviation="0 16"/>
-    </filter>
+    <!-- flou directionnel vertical (entrées de mots) -->
+    <filter id="mb1" x="-25%" y="-70%" width="150%" height="240%"><feGaussianBlur stdDeviation="0 2"/></filter>
+    <filter id="mb2" x="-25%" y="-70%" width="150%" height="240%"><feGaussianBlur stdDeviation="0 4"/></filter>
+    <filter id="mb3" x="-25%" y="-70%" width="150%" height="240%"><feGaussianBlur stdDeviation="0 7"/></filter>
+    <filter id="mb4" x="-25%" y="-70%" width="150%" height="240%"><feGaussianBlur stdDeviation="0 11"/></filter>
+    <filter id="mb5" x="-25%" y="-70%" width="150%" height="240%"><feGaussianBlur stdDeviation="0 16"/></filter>
+    <!-- flou directionnel horizontal (whip des transitions) -->
+    <filter id="hb1" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="4 0"/></filter>
+    <filter id="hb2" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="9 0"/></filter>
+    <filter id="hb3" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="16 0"/></filter>
+    <filter id="hb4" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="26 0"/></filter>
+    <filter id="hb5" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="40 0"/></filter>
   </defs>
 </svg>
 
 <script>
 /* =========================================================================
-   ZENVY — Kinetic typography, 20 s, 1080x1920.
-   Toute l'animation est une fonction pure du temps : window.renderFrame(t).
-   Aucune animation CSS / requestAnimationFrame -> rendu image par image
-   parfaitement déterministe.
+   ZENVY — kinetic typography, 20 s, 1080x1920, fond noir.
+   renderFrame(t) décrit l'état exact de la scène à l'instant t : le rendu
+   image par image est donc parfaitement déterministe.
+
+   Deux couches, comme dans After Effects :
+     - couche « caméra »  : whip de transition (translation + rotation +
+       scale + flou directionnel) et léger zoom continu, sur le bloc entier ;
+     - couche « texte »   : animation mot par mot propre à chaque séquence.
    ========================================================================= */
 
-const STAGE_W = 1080;
-const MAX_LINE_W = 920;          // largeur utile (marges 80px)
-const XF = 0.20;                 // cross-fade entre séquences (s)
+const TARGET_W  = 950;     // largeur visée par ligne (bloc justifié)
+const MAX_H     = 1180;    // hauteur max du bloc de texte
+const LH        = 0.96;    // interligne effectif (marge incluse) pour le calcul de hauteur
+const XF        = 0.22;    // durée d'une transition whip (s)
 
 /* ---------- easings ---------- */
 const clamp01 = x => x < 0 ? 0 : (x > 1 ? 1 : x);
 const easeOutCubic = x => 1 - Math.pow(1 - x, 3);
+const easeOutQuint = x => 1 - Math.pow(1 - x, 5);
 const easeInCubic  = x => x * x * x;
-const easeInOutSine = x => -(Math.cos(Math.PI * x) - 1) / 2;
+const easeInQuad   = x => x * x;
 const easeOutExpo  = x => x >= 1 ? 1 : 1 - Math.pow(2, -10 * x);
 function easeOutBack(x) {
   const c1 = 1.70158, c3 = c1 + 1;
@@ -145,10 +153,10 @@ function easeOutBack(x) {
 }
 const lerp = (a, b, x) => a + (b - a) * x;
 
-/* ---------- script de la vidéo ---------- */
+/* ---------- script ---------- */
 const SEQS = [
   {
-    id: 's1', start: 0, end: 4, type: 'reveal', size: 150,
+    id: 's1', start: 0, end: 4, type: 'reveal', dir: 1, maxSize: 250,
     lines: [
       [{t: 'On'}, {t: 'a'}, {t: 'tous'}],
       [{t: 'ce'}, {t: 'moment'}],
@@ -157,43 +165,45 @@ const SEQS = [
     ]
   },
   {
-    id: 's2', start: 4, end: 7, type: 'fall', size: 150,
+    id: 's2', start: 4, end: 7, type: 'fall', dir: -1, maxSize: 260,
     lines: [
-      [{t: '…mais'}, {t: 'personne'}],
+      [{t: '…mais'}],
+      [{t: 'personne'}],
       [{t: 'n’est'}, {t: 'dispo.'}]
     ]
   },
   {
-    id: 's3', start: 7, end: 10, type: 'reveal', size: 168, stagger: 0.15,
+    id: 's3', start: 7, end: 10, type: 'reveal', dir: 1, maxSize: 300,
     lines: [
       [{t: 'Ou'}, {t: 'on'}, {t: 'est'}],
       [{t: 'dispo…'}]
     ]
   },
   {
-    id: 's4', start: 10, end: 13, type: 'fall', size: 148,
+    id: 's4', start: 10, end: 13, type: 'fall', dir: -1, maxSize: 250,
     lines: [
-      [{t: '…mais'}, {t: 'on'}, {t: 'sait'}, {t: 'pas'}],
+      [{t: '…mais'}, {t: 'on'}],
+      [{t: 'sait'}, {t: 'pas'}],
       [{t: 'où'}, {t: 'aller.'}]
     ]
   },
   {
-    id: 's5', start: 13, end: 16, type: 'punch', size: 158,
+    id: 's5', start: 13, end: 16, type: 'punch', dir: 1, maxSize: 270,
     lines: [
-      [{t: 'Et'}, {t: 'si'}, {t: 'on'}, {t: 'savait'}],
-      [{t: 'tout,'}],
-      [{t: 'tout', c: 'orange'}, {t: 'de', c: 'orange'}, {t: 'suite ?', c: 'orange'}]
+      [{t: 'Et'}, {t: 'si'}, {t: 'on'}],
+      [{t: 'savait'}, {t: 'tout,'}],
+      [{t: 'tout', c: 'orange'}, {t: 'de', c: 'orange'}, {t: 'suite\u202f?', c: 'orange'}]
     ]
   },
   {
-    // fitW réduit : le mot monte jusqu'à 130% de son échelle, il doit rester dans le cadre
-    id: 's6', start: 16, end: 19, type: 'hero', size: 330, hardIn: true, fitW: 790,
+    // coupe nette + scale 130 % : la largeur cible est réduite pour rester dans le cadre
+    id: 's6', start: 16, end: 19, type: 'hero', hardIn: true, fitW: 800, maxSize: 400,
     lines: [
       [{t: 'Zenvy', id: 'zenvyWord'}]
     ]
   },
   {
-    id: 's7', start: 19, end: 20, type: 'static', size: 138,
+    id: 's7', start: 19, end: 20, type: 'static', dir: 1, maxSize: 230,
     lines: [
       [{t: 'Bordeaux,'}],
       [{t: '20', c: 'orange'}, {t: 'août.', c: 'orange'}]
@@ -209,9 +219,9 @@ for (const seq of SEQS) {
   const el = document.createElement('div');
   el.className = 'seq';
   el.id = seq.id;
-  el.style.fontSize = seq.size + 'px';
 
   seq.words = [];
+  seq.lineEls = [];
   for (const line of seq.lines) {
     const lineEl = document.createElement('div');
     lineEl.className = 'line';
@@ -223,58 +233,92 @@ for (const seq of SEQS) {
       lineEl.appendChild(span);
       seq.words.push(span);
     }
+    if (/[ÀÂÄÉÈÊËÎÏÔÖÙÛÜ]/.test(lineEl.textContent.toUpperCase())) lineEl.classList.add('acc');
     el.appendChild(lineEl);
+    seq.lineEls.push(lineEl);
   }
   stage.insertBefore(el, flash);
   seq.el = el;
 }
 
-/* Auto-fit : réduit la taille de police si une ligne dépasse la zone utile. */
-function autofit() {
+/* Chaque ligne est dimensionnée pour remplir la largeur : on obtient le bloc
+   typographique dense de la référence (gros mots calés les uns sur les autres). */
+function fitLines() {
   for (const seq of SEQS) {
-    const limit = seq.fitW || MAX_LINE_W;
-    let maxW = 0;
-    for (const lineEl of seq.el.querySelectorAll('.line')) {
-      maxW = Math.max(maxW, lineEl.getBoundingClientRect().width);
-    }
-    if (maxW > limit) {
-      seq.size = Math.floor(seq.size * (limit / maxW));
-      seq.el.style.fontSize = seq.size + 'px';
-    }
+    const targetW = seq.fitW || TARGET_W;
+    const maxSize = seq.maxSize || 280;
+    seq.lineEls.forEach(l => { l.style.fontSize = '100px'; });
+    let sizes = seq.lineEls.map(l => {
+      const w = l.getBoundingClientRect().width;
+      return Math.min(maxSize, Math.max(90, 100 * targetW / w));
+    });
+    const h = sizes.reduce((a, s) => a + s * LH, 0);
+    if (h > MAX_H) sizes = sizes.map(s => s * MAX_H / h);
+    seq.lineEls.forEach((l, i) => { l.style.fontSize = sizes[i].toFixed(1) + 'px'; });
   }
 }
 
-/* ---------- helpers d'animation ---------- */
-function motionBlurFilter(px) {
+/* ---------- helpers ---------- */
+function vBlur(px) {
   if (px < 1.5) return 'none';
-  if (px < 4)   return 'url(#mb1)';
-  if (px < 8)   return 'url(#mb2)';
-  if (px < 14)  return 'url(#mb3)';
-  if (px < 22)  return 'url(#mb4)';
+  if (px < 4) return 'url(#mb1)';
+  if (px < 8) return 'url(#mb2)';
+  if (px < 14) return 'url(#mb3)';
+  if (px < 22) return 'url(#mb4)';
   return 'url(#mb5)';
 }
-
-/* Opacité de séquence : cross-fade 0.2 s, sauf coupe nette (hardIn/hardOut). */
-function seqAlpha(seq, t, idx) {
-  const nextHard = SEQS[idx + 1] && SEQS[idx + 1].hardIn;
-  if (t < seq.start - (seq.hardIn ? 0 : XF * 0.5)) return 0;
-  if (t > seq.end + XF) return 0;
-
-  let a = 1;
-  if (seq.hardIn) {
-    a *= t >= seq.start ? 1 : 0;
-  } else {
-    a *= clamp01((t - (seq.start - XF * 0.5)) / XF);
-  }
-  if (nextHard) {
-    a *= t < seq.end ? 1 : 0;                       // coupe nette (séq. 5 -> 6)
-  } else {
-    a *= clamp01(((seq.end + XF * 0.5) - t) / XF);
-  }
-  return clamp01(a);
+function hBlur(px) {
+  if (px < 2) return 'none';
+  if (px < 6) return 'url(#hb1)';
+  if (px < 12) return 'url(#hb2)';
+  if (px < 21) return 'url(#hb3)';
+  if (px < 33) return 'url(#hb4)';
+  return 'url(#hb5)';
 }
 
-/* Entrée mot par mot : opacité 0->1, Y +off->0, scale s0->1. */
+/* Transition « whip » : le bloc sortant est chassé hors champ en rotation avec
+   un flou directionnel, le bloc entrant arrive du côté opposé. 0,22 s.
+   Entre les séquences 5 et 6 : coupe nette (aucun whip), soulignée par le flash. */
+function camera(seq, t, idx) {
+  const dir = seq.dir || 1;
+  const nextHard = SEQS[idx + 1] && SEQS[idx + 1].hardIn;
+  const localIn = t - seq.start;
+  const localOut = seq.end - t;
+
+  let alpha = 1, x = 0, rot = 0, scale = 1, blur = 0;
+
+  // zoom continu très léger pendant toute la séquence (caméra vivante)
+  const prog = clamp01((t - seq.start) / (seq.end - seq.start));
+  scale *= lerp(1.0, 1.035, prog);
+
+  if (seq.hardIn) {                                  // entrée en coupe nette
+    if (t < seq.start) return null;
+  } else if (localIn < XF) {                         // whip d'entrée
+    if (localIn < -0.001) return null;
+    const p = clamp01(localIn / XF), e = easeOutQuint(p);
+    x = lerp(dir * 260, 0, e);
+    rot = lerp(dir * 5.5, 0, e);
+    scale *= lerp(1.16, 1, e);
+    alpha = clamp01(p / 0.18);        // montée quasi immédiate : pas de trou noir
+    blur = (1 - e) * 26;
+  }
+
+  if (nextHard) {                                    // coupe nette en sortie
+    if (t >= seq.end) return null;
+  } else if (localOut < XF) {                        // whip de sortie
+    if (localOut < -0.001) return null;
+    const p = clamp01(1 - localOut / XF), e = easeInQuad(p);
+    x += lerp(0, -dir * 300, e);
+    rot += lerp(0, -dir * 6, e);
+    scale *= lerp(1, 1.22, e);
+    alpha *= clamp01(1 - (p - 0.5) / 0.5);   // reste plein jusqu'à mi-whip
+    blur = Math.max(blur, e * 46);
+  }
+
+  return { alpha, x, rot, scale, blur };
+}
+
+/* Entrée mot par mot */
 function wordReveal(local, i, opt) {
   const dur     = opt.dur     !== undefined ? opt.dur     : 0.30;
   const stagger = opt.stagger !== undefined ? opt.stagger : 0.15;
@@ -282,23 +326,15 @@ function wordReveal(local, i, opt) {
   const s0      = opt.s0      !== undefined ? opt.s0      : 0.95;
   const p = clamp01((local - i * stagger) / dur);
   const e = opt.back ? easeOutBack(p) : easeOutCubic(p);
-
-  let scale;
-  if (opt.back) {
-    // 80% -> 105% -> 100% (easeOutBack produit l'overshoot puis la stabilisation)
-    scale = lerp(s0, 1, e);
-  } else {
-    scale = lerp(s0, 1, e);
-  }
   const y = lerp(yOff, 0, e);
+  const scale = lerp(s0, 1, e);
   const opacity = clamp01(p / 0.85);
 
-  // vitesse verticale approximée -> flou directionnel
   let blurPx = 0;
   if (opt.blur && p > 0 && p < 1) {
     const dp = 1 / 60 / dur;
     const e2 = opt.back ? easeOutBack(clamp01(p + dp)) : easeOutCubic(clamp01(p + dp));
-    blurPx = Math.abs((lerp(yOff, 0, e2) - y)) * 0.85;
+    blurPx = Math.abs(lerp(yOff, 0, e2) - y) * 0.9;
   }
   return { y, scale, opacity, blurPx };
 }
@@ -306,21 +342,19 @@ function wordReveal(local, i, opt) {
 /* ---------- rendu d'une image ---------- */
 function renderFrame(t) {
   SEQS.forEach((seq, idx) => {
-    const a = seqAlpha(seq, t, idx);
     const el = seq.el;
-
-    if (a <= 0.0005) {
+    const cam = camera(seq, t, idx);
+    if (!cam || cam.alpha <= 0.001 || t < seq.start - XF || t > seq.end + XF) {
       el.style.opacity = '0';
       return;
     }
 
     const local = t - seq.start;
-    let seqTransform = '';
-    let seqOpacity = a;
+    let extraY = 0, extraRot = 0, dim = 1;
 
     if (seq.type === 'reveal') {
       seq.words.forEach((w, i) => {
-        const r = wordReveal(local, i, { dur: 0.30, stagger: seq.stagger || 0.15, y: 20, s0: 0.95 });
+        const r = wordReveal(local, i, { dur: 0.30, stagger: 0.15, y: 20, s0: 0.95 });
         w.style.opacity = r.opacity;
         w.style.transform = `translate3d(0, ${r.y.toFixed(2)}px, 0) scale(${r.scale.toFixed(4)})`;
         w.style.filter = 'none';
@@ -328,7 +362,6 @@ function renderFrame(t) {
     }
 
     else if (seq.type === 'fall') {
-      // 1. entrée mot par mot (avec rotation -2° -> 0°)
       const stg = 0.12;
       seq.words.forEach((w, i) => {
         const r = wordReveal(local, i, { dur: 0.28, stagger: stg, y: 18, s0: 0.96 });
@@ -337,42 +370,33 @@ function renderFrame(t) {
         w.style.filter = 'none';
       });
       const settled = (seq.words.length - 1) * stg + 0.28;
-      const rotP = clamp01(local / (settled + 0.15));
-      const rot = lerp(-2, 0, easeOutCubic(rotP));
-
-      // 2. retombée : Y 0 -> +15px (ease-in) + assombrissement 100% -> 85%
-      const fallStart = settled + 0.25;
-      const fp = clamp01((local - fallStart) / 1.0);
-      const fy = lerp(0, 15, easeInCubic(fp));
-      const dim = lerp(1, 0.85, easeInCubic(fp));
-
-      seqTransform = `translate3d(0, ${fy.toFixed(2)}px, 0) rotate(${rot.toFixed(3)}deg)`;
-      seqOpacity = a * dim;
+      extraRot = lerp(-2, 0, easeOutCubic(clamp01(local / (settled + 0.15))));
+      const fp = clamp01((local - (settled + 0.25)) / 1.0);
+      extraY = lerp(0, 15, easeInCubic(fp));          // retombée
+      dim = lerp(1, 0.85, easeInCubic(fp));           // assombrissement
     }
 
     else if (seq.type === 'punch') {
       seq.words.forEach((w, i) => {
-        const r = wordReveal(local, i, {
-          dur: 0.34, stagger: 0.08, y: 40, s0: 0.80, back: true, blur: true
-        });
+        const r = wordReveal(local, i, { dur: 0.34, stagger: 0.08, y: 40, s0: 0.80, back: true, blur: true });
         w.style.opacity = r.opacity;
         w.style.transform = `translate3d(0, ${r.y.toFixed(2)}px, 0) scale(${r.scale.toFixed(4)})`;
-        w.style.filter = motionBlurFilter(r.blurPx);
+        w.style.filter = vBlur(r.blurPx);
       });
     }
 
     else if (seq.type === 'hero') {
       const w = seq.words[0];
-      let scale;
       const upDur = 0.40, backDur = 0.34;
+      let scale;
       if (local < upDur) {
-        scale = lerp(0.5, 1.3, easeOutExpo(local / upDur));            // 50% -> 130%
+        scale = lerp(0.5, 1.3, easeOutExpo(local / upDur));
       } else if (local < upDur + backDur) {
-        const p = (local - upDur) / backDur;                            // rebond -> 100%
-        scale = lerp(1.3, 1.0, easeOutCubic(p)) + Math.sin(p * Math.PI) * -0.035;
+        const p = (local - upDur) / backDur;
+        scale = lerp(1.3, 1.0, easeOutCubic(p)) - Math.sin(p * Math.PI) * 0.035;
       } else {
-        const p = local - (upDur + backDur);                            // pulse continu
-        scale = 1.0 + 0.015 - 0.015 * Math.cos(p * (2 * Math.PI) / 1.6);
+        const p = local - (upDur + backDur);
+        scale = 1.015 - 0.015 * Math.cos(p * (2 * Math.PI) / 1.6);   // pulse continu
       }
       w.style.opacity = 1;
       w.style.transform = `scale(${scale.toFixed(4)})`;
@@ -387,11 +411,14 @@ function renderFrame(t) {
       });
     }
 
-    el.style.opacity = seqOpacity.toFixed(4);
-    el.style.transform = seqTransform || 'none';
+    el.style.opacity = (cam.alpha * dim).toFixed(4);
+    el.style.transform =
+      `translate3d(${cam.x.toFixed(1)}px, ${extraY.toFixed(2)}px, 0) ` +
+      `rotate(${(cam.rot + extraRot).toFixed(3)}deg) scale(${cam.scale.toFixed(4)})`;
+    el.style.filter = hBlur(cam.blur);
   });
 
-  /* Flash plein écran synchronisé sur le pic de scale de "Zenvy" (t = 16.40) */
+  /* Flash plein écran calé sur le pic de scale de « Zenvy » (t = 16,40 s) */
   const fPeak = 16.40, fUp = 0.08, fDown = 0.12;
   let fo = 0;
   if (t >= fPeak - fUp && t <= fPeak + fDown) {
@@ -403,11 +430,10 @@ function renderFrame(t) {
 }
 
 window.renderFrame = renderFrame;
-window.autofit = autofit;
 window.SCENE_DURATION = 20;
 
 document.fonts.ready.then(() => {
-  autofit();
+  fitLines();
   renderFrame(0);
   window.__ready = true;
 });

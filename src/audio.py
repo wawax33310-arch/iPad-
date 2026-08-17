@@ -1,18 +1,21 @@
 #!/usr/bin/env python3
 """
-Piste sonore de la pub Zenvy (20 s) — synthèse pure, aucun sample externe.
+Bande son de la pub Zenvy (20 s) — synthèse pure, aucun sample externe.
 
-  - nappe électronique minimaliste (pas de voix, pas de paroles)
-  - intensité qui suit la montée du montage, accélération à partir de 13 s
-  - riser + whoosh + impact courts synchronisés sur le flash de la séquence 6
+Prod électronique rythmée, sans voix ni paroles, calée sur le montage :
+  120 BPM (1 mesure = 2 s), donc chaque séquence tombe pile sur une mesure.
+
+  mes. 1-2 (0-4 s)   intro     kick 1 & 3, hat 8e, nappe filtrée
+  mes. 3-4 (4-8 s)   groove    kick 4/4, basse contretemps, clap sur 2 et 4
+  mes. 5-6 (8-12 s)  montée    basse en croches, hats en doubles, stabs
+  mes. 7-8 (12-16 s) build     roulement qui accélère, riser, coupe avant le drop
+  mes. 9-10 (16-20 s) drop     impact, kick + basse pleine, stabs larges, sortie
 
 Sortie : out/zenvy-audio.wav (48 kHz, stéréo, 16 bits)
 """
 
-import math
-import wave
-import struct
 import os
+import wave
 import numpy as np
 
 SR = 48000
@@ -20,264 +23,363 @@ DUR = 20.0
 N = int(SR * DUR)
 T = np.arange(N) / SR
 
-FLASH = 16.40          # pic du flash lumineux (séquence 6)
-CUT = 16.00            # coupe nette séquence 5 -> 6
+BPM = 120.0
+BEAT = 60.0 / BPM          # 0.5 s
+BAR = 4 * BEAT             # 2 s
+DROP = 16.0                # coupe nette séquence 5 -> 6
+FLASH = 16.40              # pic du flash lumineux
+
 OUT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                    "out", "zenvy-audio.wav")
 
+rng = np.random.default_rng(2024)
+mix = np.zeros((N, 2))
+
 
 # --------------------------------------------------------------------------
-# utilitaires
+# outils
 # --------------------------------------------------------------------------
-def ramp(t, x0, x1, y0, y1):
-    """Rampe lissée (smoothstep) de y0 à y1 entre x0 et x1."""
-    p = np.clip((t - x0) / (x1 - x0), 0.0, 1.0)
-    return y0 + (y1 - y0) * (p * p * (3 - 2 * p))
+def add(sig, at, gain=1.0, pan=0.0):
+    """Ajoute un signal mono dans le mix à l'instant `at` (s)."""
+    i0 = int(at * SR)
+    if i0 >= N:
+        return
+    if i0 < 0:
+        sig = sig[-i0:]
+        i0 = 0
+    ln = min(len(sig), N - i0)
+    l = gain * np.sqrt(0.5 * (1 - pan))
+    r = gain * np.sqrt(0.5 * (1 + pan))
+    mix[i0:i0 + ln, 0] += sig[:ln] * l
+    mix[i0:i0 + ln, 1] += sig[:ln] * r
 
 
-def window_section(t, start, end, fade=0.5):
-    """Fenêtre d'une section d'accord avec fondus enchaînés."""
-    up = np.clip((t - start) / fade, 0, 1)
-    down = np.clip((end - t) / fade, 0, 1)
-    w = np.minimum(up, down)
-    return w * w * (3 - 2 * w)
+def env_exp(n, decay, attack=0.002):
+    t = np.arange(n) / SR
+    a = np.clip(t / max(attack, 1e-5), 0, 1)
+    return a * np.exp(-t / decay)
 
 
-def sweep_noise(t0, t1, f_start, f_end, bw_oct=1.2, seed=1):
-    """Bruit filtré passe-bande dont la fréquence centrale balaie f_start -> f_end.
-    Filtrage temps-variant par STFT (fenêtres de Hann, overlap-add)."""
-    rng = np.random.default_rng(seed)
-    i0, i1 = int(t0 * SR), int(t1 * SR)
-    length = i1 - i0
-    out = np.zeros(N)
-    if length <= 0:
-        return out
+def kick(decay=0.34, f0=115.0, f1=44.0, punch=1.0):
+    n = int(decay * 3 * SR)
+    t = np.arange(n) / SR
+    f = f1 + (f0 - f1) * np.exp(-t / 0.026)
+    body = np.sin(2 * np.pi * np.cumsum(f) / SR) * np.exp(-t / decay)
+    click = np.exp(-t / 0.004) * rng.normal(0, 1, n) * 0.25 * punch
+    return np.tanh((body + click) * 1.4) * 0.9
 
-    noise = rng.normal(0, 1, length)
+
+def sub(freq, dur, decay=None, shape=0.0):
+    n = int(dur * SR)
+    t = np.arange(n) / SR
+    d = decay if decay else dur * 0.6
+    sig = np.sin(2 * np.pi * freq * t)
+    sig += shape * np.sin(4 * np.pi * freq * t) * 0.35      # harmonique = grain
+    e = np.minimum(np.clip(t / 0.006, 0, 1), np.exp(-t / d))
+    return np.tanh(sig * e * 1.3) * 0.8
+
+
+def noise_hit(decay, bright=1.0, seed=None):
+    n = int(decay * 5 * SR)
+    r = np.random.default_rng(seed) if seed is not None else rng
+    nz = r.normal(0, 1, n + 1)
+    hp = np.diff(nz)                                        # bruit éclairci
+    body = hp * bright + nz[:n] * (1 - bright) * 0.6
+    return body * env_exp(n, decay, attack=0.0008)
+
+
+def clap(decay=0.16):
+    n = int(decay * 5 * SR)
+    out = np.zeros(n)
+    for k, off in enumerate((0.0, 0.011, 0.021)):           # 3 rebonds = clap
+        i = int(off * SR)
+        seg = noise_hit(0.035, bright=0.85, seed=100 + k)
+        ln = min(len(seg), n - i)
+        out[i:i + ln] += seg[:ln] * (0.8 ** k)
+    tail = noise_hit(decay, bright=0.7, seed=200)
+    out[:len(tail)] += tail * 0.5
+    return out * 0.55
+
+
+def hat(decay=0.028, bright=1.0):
+    return noise_hit(decay, bright=bright, seed=int(rng.integers(1e6))) * 0.35
+
+
+def stab(freqs, dur=0.22, harm=6, glide=0.0):
+    """Accord court, timbre saw filtré (harmoniques décroissantes)."""
+    n = int(dur * 3 * SR)
+    t = np.arange(n) / SR
+    out = np.zeros(n)
+    for f in freqs:
+        ff = f * (1 + glide * np.exp(-t / 0.05))
+        ph = 2 * np.pi * np.cumsum(ff) / SR
+        for k in range(1, harm + 1):
+            out += np.sin(k * ph) / (k ** 1.25) * np.exp(-k / 4.0)
+    out /= len(freqs)
+    return out * env_exp(n, dur * 0.45, attack=0.004) * 0.5
+
+
+def sweep_noise(dur, f_start, f_end, bw_oct=1.2, seed=1):
+    """Bruit passe-bande balayé (riser / whoosh), filtrage STFT temps-variant."""
+    length = int(dur * SR)
+    r = np.random.default_rng(seed)
+    noise = r.normal(0, 1, length)
     win_len, hop = 2048, 512
     win = np.hanning(win_len)
     freqs = np.fft.rfftfreq(win_len, 1 / SR)
     freqs[0] = 1e-6
     acc = np.zeros(length + win_len)
     norm = np.zeros(length + win_len)
-
     for start in range(0, length, hop):
         chunk = np.zeros(win_len)
         seg = noise[start:start + win_len]
         chunk[:len(seg)] = seg
         p = start / max(length - 1, 1)
-        fc = f_start * (f_end / f_start) ** p            # balayage exponentiel
+        fc = f_start * (f_end / f_start) ** p
         mask = np.exp(-0.5 * (np.log2(freqs / fc) / bw_oct) ** 2)
-        filt = np.fft.irfft(np.fft.rfft(chunk * win) * mask, win_len)
-        acc[start:start + win_len] += filt * win
+        acc[start:start + win_len] += np.fft.irfft(np.fft.rfft(chunk * win) * mask, win_len) * win
         norm[start:start + win_len] += win * win
-
-    acc = acc[:length] / np.maximum(norm[:length], 1e-6)
-    out[i0:i1] = acc
-    return out
+    return acc[:length] / np.maximum(norm[:length], 1e-6)
 
 
 def fft_convolve(sig, ir):
     n = 1
     while n < len(sig) + len(ir):
         n *= 2
-    res = np.fft.irfft(np.fft.rfft(sig, n) * np.fft.rfft(ir, n), n)
-    return res[:len(sig)]
+    return np.fft.irfft(np.fft.rfft(sig, n) * np.fft.rfft(ir, n), n)[:len(sig)]
 
 
 # --------------------------------------------------------------------------
-# 1. Courbe d'intensité : suit la montée du montage
+# harmonie : Am - F - C - G - Am (une couleur par 2 mesures)
 # --------------------------------------------------------------------------
-intensity = np.full(N, 0.30)
-intensity = np.maximum(intensity, ramp(T, 0.0, 2.0, 0.10, 0.32))
-intensity = np.maximum(intensity, ramp(T, 6.5, 8.0, 0.32, 0.42))
-intensity = np.maximum(intensity, ramp(T, 12.5, 13.2, 0.42, 0.55))
-intensity = np.maximum(intensity, ramp(T, 13.2, FLASH, 0.55, 1.00))
-intensity = np.where(T > FLASH, ramp(T, FLASH, 19.6, 1.00, 0.55), intensity)
+NOTE = {'A1': 55.00, 'C2': 65.41, 'E2': 82.41, 'F1': 43.65, 'G1': 49.00,
+        'A2': 110.00, 'C3': 130.81, 'E3': 164.81, 'F2': 87.31, 'G2': 98.00,
+        'A3': 220.00, 'C4': 261.63, 'E4': 329.63, 'F3': 174.61, 'G3': 196.00,
+        'B3': 246.94, 'D4': 293.66, 'A4': 440.00}
 
-
-# --------------------------------------------------------------------------
-# 2. Nappe : accords tenus, timbre qui s'ouvre avec l'intensité
-# --------------------------------------------------------------------------
-A2, C3, D3, E3, F2, F3, G2, G3, A3, B3, C4, E4 = (
-    110.00, 130.81, 146.83, 164.81, 87.31, 174.61,
-    98.00, 196.00, 220.00, 246.94, 261.63, 329.63)
-
-SECTIONS = [
-    # (début, fin, notes, gain)      -- Am / F / G(tension) / Am ouvert
-    (-0.5, 7.3, [A2, E3, A3, C4], 1.00),
-    (6.8, 13.3, [F2, C3, F3, A3], 1.00),
-    (12.8, FLASH + 0.1, [G2, D3, G3, B3], 1.05),
-    (FLASH - 0.15, 20.5, [A2, E3, A3, C4, E4], 1.15),
+SECTIONS = [                     # (début, fin, basse, accord)
+    (0.0,  4.0, NOTE['A1'], [NOTE['A3'], NOTE['C4'], NOTE['E4']]),
+    (4.0,  8.0, NOTE['F1'], [NOTE['A3'], NOTE['C4'], NOTE['F3']]),
+    (8.0, 12.0, NOTE['C2'], [NOTE['C4'], NOTE['E4'], NOTE['G3']]),
+    (12.0, 16.0, NOTE['G1'], [NOTE['B3'], NOTE['D4'], NOTE['G3']]),
+    (16.0, 20.0, NOTE['A1'], [NOTE['A3'], NOTE['C4'], NOTE['E4'], NOTE['A4']]),
 ]
 
-HARMONICS = 7
-pad_l = np.zeros(N)
-pad_r = np.zeros(N)
-rng = np.random.default_rng(7)
 
-for (s0, s1, notes, gain) in SECTIONS:
-    env = window_section(T, s0, s1) * gain
-    if not np.any(env > 0):
-        continue
-    for k, f in enumerate(notes):
-        # léger vibrato lent, désaccord doux entre les deux oscillateurs
-        drift = 1 + 0.0009 * np.sin(2 * np.pi * (0.07 + 0.013 * k) * T + k)
-        for det, pan in ((1.0 - 0.0012, 0.0), (1.0 + 0.0012, 1.0)):
-            phase = 2 * np.pi * f * det * drift * T + rng.uniform(0, 6.28)
-            voice = np.zeros(N)
-            for n in range(1, HARMONICS + 1):
-                w = np.exp(-(n - 1) / (1.1 + 5.0 * intensity)) / (n ** 0.7)
-                voice += w * np.sin(n * phase)
-            voice *= env / (len(notes) * 2.2)
-            # note grave centrée, notes hautes légèrement élargies
-            width = 0.20 if k == 0 else 0.42
-            gl = 0.5 + (0.5 - pan) * width
-            gr = 1.0 - gl
-            pad_l += voice * gl
-            pad_r += voice * gr
-
-pad_l *= 0.34
-pad_r *= 0.34
+def section_at(t):
+    for s in SECTIONS:
+        if s[0] <= t < s[1]:
+            return s
+    return SECTIONS[-1]
 
 
 # --------------------------------------------------------------------------
-# 3. Pouls rythmique : lent, puis accélération à partir de la séquence 5
+# nappe de fond (elle tient l'harmonie sous le rythme)
 # --------------------------------------------------------------------------
-pulse = np.zeros(N)
-tick = np.zeros(N)
+intensity = np.interp(T, [0, 4, 8, 12, 15.5, 16.0, 19.0, 20.0],
+                         [0.25, 0.35, 0.5, 0.62, 0.95, 1.0, 0.8, 0.5])
+
+for (s0, s1, bass, chord) in SECTIONS:
+    i0, i1 = int(s0 * SR), int(s1 * SR)
+    tt = np.arange(i1 - i0) / SR
+    seg = np.zeros(i1 - i0)
+    inten = intensity[i0:i1]
+    for f in chord:
+        for det in (0.9988, 1.0012):
+            ph = 2 * np.pi * f * det * tt
+            for k in range(1, 6):
+                seg += np.sin(k * ph) * np.exp(-(k - 1) / (0.9 + 4.0 * inten)) / (k ** 0.8)
+    seg /= (len(chord) * 2 * 3.0)
+    fade = np.minimum(np.clip(tt / 0.35, 0, 1), np.clip((s1 - s0 - tt) / 0.35, 0, 1))
+    add(seg * fade * 0.16, s0, pan=-0.15)
+    add(np.roll(seg, 240) * fade * 0.16, s0, pan=0.15)
 
 
-def add_pulse(t_at, amp=1.0, freq=55.0, decay=0.28):
-    i0 = int(t_at * SR)
-    if i0 >= N or t_at < 0:
-        return
-    ln = min(int(decay * 3 * SR), N - i0)
-    tt = np.arange(ln) / SR
-    env = np.exp(-tt / decay)
-    f = freq * (1 + 1.6 * np.exp(-tt / 0.02))          # petit "pitch drop"
-    pulse[i0:i0 + ln] += amp * env * np.sin(2 * np.pi * f * tt)
+# --------------------------------------------------------------------------
+# rythmique
+# --------------------------------------------------------------------------
+def bar_time(bar_idx, beat=0.0):
+    return bar_idx * BAR + beat * BEAT
 
 
-def add_tick(t_at, amp=1.0, decay=0.035, seed=3):
-    i0 = int(t_at * SR)
-    if i0 >= N or t_at < 0:
-        return
-    ln = min(int(decay * 6 * SR), N - i0)
-    r = np.random.default_rng(seed + i0)
-    nz = np.diff(r.normal(0, 1, ln + 1))               # bruit "clair"
-    tt = np.arange(ln) / SR
-    tick[i0:i0 + ln] += amp * np.exp(-tt / decay) * nz
+# --- kick -----------------------------------------------------------------
+for bar in range(10):
+    for b in range(4):
+        t0 = bar_time(bar, b)
+        if t0 >= 15.5 and t0 < DROP:            # respiration avant le drop
+            continue
+        if bar < 2:                             # intro : temps 1 et 3
+            if b % 2 == 0:
+                add(kick(decay=0.30), t0, gain=0.72)
+        elif bar < 6:
+            add(kick(), t0, gain=0.88)
+        elif bar < 8:
+            add(kick(), t0, gain=0.92)
+            if b == 3:
+                add(kick(decay=0.22), t0 + BEAT / 2, gain=0.7)
+        else:                                   # drop
+            add(kick(decay=0.38, punch=1.2), t0, gain=1.0)
+            if b == 2:
+                add(kick(decay=0.20), t0 + BEAT * 0.75, gain=0.6)
 
+# --- basse ----------------------------------------------------------------
+for bar in range(10):
+    s = section_at(bar_time(bar))
+    root = s[2]
+    if bar < 2:
+        add(sub(root, BEAT * 1.5, decay=0.5), bar_time(bar, 0), gain=0.5)
+    elif bar < 4:                               # contretemps
+        for b in range(4):
+            add(sub(root, BEAT * 0.45, decay=0.16, shape=0.4),
+                bar_time(bar, b) + BEAT / 2, gain=0.55)
+    elif bar < 8:                               # croches, avec quinte de passage
+        for k in range(8):
+            t0 = bar_time(bar) + k * BEAT / 2
+            if t0 >= 15.5:
+                continue
+            f = root * (1.5 if k in (5, 7) else 1.0)
+            add(sub(f, BEAT * 0.42, decay=0.15, shape=0.5), t0, gain=0.52)
+    else:                                       # drop : basse pleine
+        for k in range(8):
+            t0 = bar_time(bar) + k * BEAT / 2
+            f = root * (1.0 if k % 4 < 2 else 1.5)
+            add(sub(f, BEAT * 0.46, decay=0.20, shape=0.6), t0, gain=0.62)
 
-beats = []
-t_beat = 0.0
-while t_beat < CUT:
-    beats.append(t_beat)
-    if t_beat < 13.0:
-        step = 1.0
-    elif t_beat < 15.0:
-        step = 0.5
+# --- clap / snare ---------------------------------------------------------
+for bar in range(10):
+    for b in (1, 3):
+        t0 = bar_time(bar, b)
+        if t0 >= 15.5 and t0 < DROP:
+            continue
+        if bar >= 2:
+            add(clap(), t0, gain=0.75 if bar < 8 else 0.95)
+
+# --- hats -----------------------------------------------------------------
+for bar in range(10):
+    if bar < 2:
+        steps, lvl = 8, 0.35
+    elif bar < 4:
+        steps, lvl = 8, 0.5
+    elif bar < 8:
+        steps, lvl = 16, 0.45
     else:
-        step = 0.25
-    t_beat += step
+        steps, lvl = 16, 0.6
+    for k in range(steps):
+        t0 = bar_time(bar) + k * BAR / steps
+        if 15.5 <= t0 < DROP:
+            continue
+        accent = 1.0 if (k % (steps // 4) == 0) else 0.55
+        add(hat(decay=0.030 if accent > 0.9 else 0.020), t0,
+            gain=lvl * accent, pan=0.25 * (1 if k % 2 else -1))
 
-for b in beats:
-    lvl = 0.42 if b < 13.0 else 0.55 + 0.25 * (b - 13.0) / 3.0
-    add_pulse(b, amp=lvl * 0.9)
-    if b >= 13.0:
-        add_tick(b + 0.25 if b < 13.0 else b, amp=0.05 + 0.05 * (b - 13.0) / 3.0)
-
-# battements sourds après le climax
-add_pulse(17.6, amp=0.30)
-add_pulse(18.6, amp=0.22)
-
-
-# --------------------------------------------------------------------------
-# 4. Riser + whoosh + impact autour du flash
-# --------------------------------------------------------------------------
-riser = sweep_noise(13.9, FLASH, 350, 5200, bw_oct=1.4, seed=11)
-riser_env = np.clip((T - 13.9) / (FLASH - 13.9), 0, 1) ** 2.2
-riser *= riser_env * 0.30
-
-# sine sweep discret qui accompagne le riser
-sw = np.zeros(N)
-i0, i1 = int(13.9 * SR), int(FLASH * SR)
-tt = np.linspace(0, 1, i1 - i0)
-f_sw = 180 * (1400 / 180) ** tt
-ph = 2 * np.pi * np.cumsum(f_sw) / SR
-sw[i0:i1] = np.sin(ph) * (tt ** 3) * 0.12
-
-# whoosh court centré sur le flash
-whoosh = sweep_noise(FLASH - 0.55, FLASH + 0.30, 700, 9000, bw_oct=1.6, seed=23)
-wi0 = int((FLASH - 0.55) * SR)
-wi1 = int((FLASH + 0.30) * SR)
-wt = np.arange(wi1 - wi0) / SR
-wenv = np.where(wt < 0.55, (wt / 0.55) ** 2.5, np.exp(-(wt - 0.55) / 0.09))
-whoosh[wi0:wi1] *= wenv * 0.55
-
-# "pop" transitoire + impact sub, pile sur le flash
-impact = np.zeros(N)
-i0 = int(FLASH * SR)
-ln = min(int(1.6 * SR), N - i0)
-tt = np.arange(ln) / SR
-f_pop = 120 + 780 * np.exp(-tt / 0.02)
-impact[i0:i0 + ln] += 0.45 * np.exp(-tt / 0.09) * np.sin(2 * np.pi * np.cumsum(f_pop) / SR)
-impact[i0:i0 + ln] += 0.80 * np.exp(-tt / 0.45) * np.sin(2 * np.pi * 45 * tt)
-r = np.random.default_rng(5)
-impact[i0:i0 + ln] += 0.12 * np.exp(-tt / 0.10) * r.normal(0, 1, ln)
-
-# petit souffle sur la coupe nette 5 -> 6
-cut_fx = sweep_noise(CUT - 0.18, CUT + 0.12, 1200, 400, bw_oct=1.3, seed=31)
-ci0, ci1 = int((CUT - 0.18) * SR), int((CUT + 0.12) * SR)
-ct = np.arange(ci1 - ci0) / SR
-cut_fx[ci0:ci1] *= np.exp(-np.abs(ct - 0.18) / 0.06) * 0.18
-
-fx = riser + sw + whoosh + impact + cut_fx
+# --- stabs d'accord -------------------------------------------------------
+for bar in range(4, 10):
+    s = section_at(bar_time(bar))
+    chord = s[3]
+    if bar < 8:
+        for b in (1, 2.5):
+            t0 = bar_time(bar, b)
+            if t0 >= 15.5:
+                continue
+            add(stab(chord, dur=0.20), t0, gain=0.30, pan=0.1)
+    else:                                       # drop : stabs plus larges
+        for b in (0, 1.5, 2, 3.5):
+            add(stab(chord, dur=0.26, harm=8), bar_time(bar, b), gain=0.42,
+                pan=0.15 if b % 2 else -0.15)
 
 
 # --------------------------------------------------------------------------
-# 5. Réverbération légère sur le bus effets (queue synthétique)
+# build (mes. 7-8) : roulement qui accélère + riser, puis coupe
 # --------------------------------------------------------------------------
-ir_len = int(1.1 * SR)
+t_roll = 14.0
+step = 0.25
+while t_roll < 15.5:
+    lvl = 0.25 + 0.55 * (t_roll - 14.0) / 1.5
+    add(noise_hit(0.05, bright=0.9, seed=int(t_roll * 1000)) * 0.8, t_roll, gain=lvl)
+    step = max(0.0625, step * 0.82)             # 8e -> 16e -> 32e
+    t_roll += step
+
+riser = sweep_noise(2.6, 300, 6000, bw_oct=1.4, seed=11)
+r_env = np.linspace(0, 1, len(riser)) ** 2.4
+add(riser * r_env, 13.8, gain=0.34)
+
+n_sw = int(2.6 * SR)
+tt = np.linspace(0, 1, n_sw)
+f_sw = 160 * (1600 / 160) ** tt
+add(np.sin(2 * np.pi * np.cumsum(f_sw) / SR) * (tt ** 3), 13.8, gain=0.16)
+
+# petit silence tendu juste avant la coupe : seule la queue du riser reste
+
+
+# --------------------------------------------------------------------------
+# drop : impact sur la coupe + accent sur le flash
+# --------------------------------------------------------------------------
+n_imp = int(2.0 * SR)
+t_imp = np.arange(n_imp) / SR
+impact = 0.9 * np.exp(-t_imp / 0.55) * np.sin(2 * np.pi * 42 * t_imp)
+impact += 0.35 * np.exp(-t_imp / 0.10) * rng.normal(0, 1, n_imp)
+add(np.tanh(impact * 1.2), DROP, gain=0.85)
+add(sweep_noise(1.2, 9000, 500, bw_oct=1.5, seed=41) * np.exp(-np.arange(int(1.2 * SR)) / SR / 0.35),
+    DROP, gain=0.30)                            # crash inversé -> descendant
+
+# whoosh + pop pile sur le flash lumineux
+whoosh = sweep_noise(0.75, 600, 9000, bw_oct=1.6, seed=23)
+w_env = np.concatenate([
+    np.linspace(0, 1, int(0.55 * SR)) ** 2.5,
+    np.exp(-np.arange(len(whoosh) - int(0.55 * SR)) / SR / 0.08)])
+add(whoosh * w_env[:len(whoosh)], FLASH - 0.55, gain=0.55)
+
+n_pop = int(0.5 * SR)
+t_pop = np.arange(n_pop) / SR
+f_pop = 130 + 900 * np.exp(-t_pop / 0.02)
+add(np.exp(-t_pop / 0.09) * np.sin(2 * np.pi * np.cumsum(f_pop) / SR), FLASH, gain=0.45)
+add(np.exp(-t_pop / 0.30) * np.sin(2 * np.pi * 48 * t_pop), FLASH, gain=0.55)
+
+
+# --------------------------------------------------------------------------
+# réverbération courte sur l'ensemble (colle le mix)
+# --------------------------------------------------------------------------
+ir_len = int(0.9 * SR)
 ir_t = np.arange(ir_len) / SR
-r = np.random.default_rng(99)
-ir = r.normal(0, 1, ir_len) * np.exp(-ir_t / 0.30)
-ir *= np.linspace(1, 0.2, ir_len)
-ir[:int(0.008 * SR)] = 0
+ir = rng.normal(0, 1, ir_len) * np.exp(-ir_t / 0.22) * np.linspace(1, 0.15, ir_len)
+ir[:int(0.006 * SR)] = 0
 ir /= np.sqrt(np.sum(ir ** 2))
-wet = fft_convolve(fx, ir) * 0.55
+wet = np.stack([fft_convolve(mix[:, 0], ir), fft_convolve(mix[:, 1], ir)], axis=1)
+out = mix + wet * 0.18
+
+# arc d'énergie : chaque bloc de 4 s pousse un peu plus fort que le précédent
+arc = np.interp(T, [0, 4, 8, 12, 15.5, 16.0, 19.0, 20.0],
+                   [0.72, 0.82, 0.90, 0.96, 1.00, 1.06, 1.04, 0.98])
+out *= arc[:, None]
+
+# lift d'aigus (dérivée = pente +6 dB/oct) : lisibilité sur haut-parleur de téléphone
+hf = np.diff(out, axis=0, prepend=out[:1])
+out = out + 0.55 * hf
 
 
 # --------------------------------------------------------------------------
-# 6. Mixage
+# master
 # --------------------------------------------------------------------------
-mono = pulse * 0.9 + tick * 0.6 + fx * 0.95 + wet * 0.45
-left = pad_l + mono
-right = pad_r + mono
+master = np.clip(T / 0.12, 0, 1) * np.clip((20.0 - T) / 0.45, 0, 1) ** 0.7
+out *= master[:, None]
 
-# léger élargissement stéréo sur les effets aigus
-delay = int(0.008 * SR)
-right[delay:] += 0.12 * (fx[:-delay] * 0.5)
-
-# enveloppe globale : fondu d'entrée + fondu de sortie sur la dernière seconde
-master = np.ones(N)
-master *= np.clip(T / 0.25, 0, 1)
-master *= np.clip((20.0 - T) / 0.55, 0, 1) ** 0.8
-left *= master
-right *= master
-
-stereo = np.stack([left, right], axis=1)
-stereo = np.tanh(stereo * 1.15) / 1.05          # limitation douce
-peak = np.max(np.abs(stereo))
-stereo *= 0.92 / peak
+# compression douce type « colle de bus » + limitation
+env = np.abs(out).max(axis=1)
+k = int(0.02 * SR)
+env = np.convolve(env, np.ones(k) / k, mode='same')
+gain = 1.0 / (1.0 + np.maximum(env - 0.55, 0) * 1.6)
+out *= gain[:, None]
+out = np.tanh(out * 1.25) / 1.05
+peak = np.max(np.abs(out))
+out *= 0.94 / peak
 
 os.makedirs(os.path.dirname(OUT), exist_ok=True)
-pcm = (stereo * 32767).astype(np.int16)
+pcm = (out * 32767).astype(np.int16)
 with wave.open(OUT, "wb") as f:
     f.setnchannels(2)
     f.setsampwidth(2)
     f.setframerate(SR)
     f.writeframes(pcm.tobytes())
 
-print(f"✔ {OUT} — {DUR:.1f}s, {SR} Hz, stéréo, pic {peak:.3f} -> 0.92")
+rms = np.sqrt(np.mean(out ** 2))
+print(f"✔ {OUT} — {DUR:.0f}s, {BPM:.0f} BPM, pic brut {peak:.2f} -> 0.94, RMS {rms:.3f}")

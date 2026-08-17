@@ -14,7 +14,7 @@ Format prêt pour Instagram Reels et TikTok.
 | Élément | Choix |
 |---|---|
 | Fond | noir pur `#000000`, uni, sans texture ni vignette |
-| Typo | **Inter** (Bold / ExtraBold), sans-serif contemporaine, capitales, interlettrage resserré (-0,025 em) |
+| Typo | **Anton** — grotesque ultra-grasse, capitales, interlettrage resserré (−0,012 em), lignes justifiées à la largeur du cadre et empilées serré (réf. affiche « ANIMATION DE TEXTE ») |
 | Couleur principale | blanc pur `#FFFFFF` |
 | Accent orange Zenvy | `#FF8A1E` |
 | Accent violet Zenvy | `#8B31F4` |
@@ -33,17 +33,30 @@ Format prêt pour Instagram Reels et TikTok.
 | 6 | 16 → 19 s | **Zenvy** | Coupe nette. Scale 50 % → 130 % en 0,4 s (easeOutExpo) puis rebond retour à 100 %, dégradé violet → orange sur les lettres, **flash blanc plein écran** (0 → 60 % → 0 en 0,2 s) calé sur le pic à t = 16,40 s, puis pulse continu 100 % ↔ 103 % |
 | 7 | 19 → 20 s | Bordeaux, **20 août.** | Fade-in simple 0 → 100 % en 0,3 s, sans mouvement ni scale ; « 20 août. » en orange |
 
-**Transitions** : cross-fade de 0,2 s entre chaque bloc, sauf entre les
-séquences 5 et 6 où une coupe nette, renforcée par le flash, marque la rupture.
+**Transitions** : *whip* de 0,22 s entre chaque bloc — le texte sortant est
+chassé hors champ en translation + rotation + zoom avec flou directionnel
+horizontal, le bloc suivant arrive du côté opposé (sens alterné). Un léger
+zoom continu anime chaque plan. Entre les séquences 5 et 6 : coupe nette,
+soulignée par le flash.
 
 ## Bande son (`src/audio.py`)
 
-Aucune voix off, aucune parole. Nappe électronique minimaliste synthétisée
-(additive, 7 harmoniques, timbre qui s'ouvre avec l'intensité), progression
-Am → F → G → Am ouvert. Le pouls sub passe de 1 battement/s à 2 puis 4 à
-partir de la séquence 5 (accélération), un riser filtré monte de 13,9 s à
-16,4 s, et un whoosh + pop + impact sub tombent exactement sur le flash
-lumineux (t = 16,40 s). Fondu de sortie sur la dernière demi-seconde.
+Prod électronique rythmée, sans voix ni paroles, **120 BPM** — une mesure de
+2 s, donc chaque séquence tombe pile sur une mesure. Kick, sub, clap, hats,
+stabs d'accord et nappe sont tous synthétisés (aucun sample externe), sur la
+grille Am → F → C → G → Am.
+
+| Mesures | Temps | Arrangement |
+|---|---|---|
+| 1-2 | 0 → 4 s | intro : kick sur 1 et 3, hats en croches, nappe filtrée |
+| 3-4 | 4 → 8 s | groove : kick 4/4, basse en contretemps, clap sur 2 et 4 |
+| 5-6 | 8 → 12 s | basse en croches, hats en doubles, stabs d'accord |
+| 7-8 | 12 → 16 s | build : roulement qui accélère (8ᵉ → 16ᵉ → 32ᵉ), riser filtré, coupe de 0,5 s avant le drop |
+| 9-10 | 16 → 20 s | drop : impact sub, kick + basse pleines, stabs larges, sortie en fondu |
+
+Le whoosh + pop tombent exactement sur le flash lumineux (t = 16,40 s). Le
+master applique un arc d'énergie croissant, une compression de bus douce et
+un lift d'aigus pour rester lisible sur haut-parleur de téléphone.
 
 ## Reproduire le rendu
 
@@ -64,7 +77,7 @@ src/render.js    Chromium -> 1200 images PNG -> pipe ffmpeg -> MP4
 src/audio.py     synthèse de la piste sonore (WAV 48 kHz stéréo)
 src/preview.js   export d'images clés en PNG pour contrôle visuel
 src/build.sh     enchaînement complet
-assets/fonts/    Inter Bold / ExtraBold (SIL Open Font License)
+assets/fonts/    Anton (SIL OFL) + Inter ExtraBold en repli
 out/             livrables générés
 ```
 
