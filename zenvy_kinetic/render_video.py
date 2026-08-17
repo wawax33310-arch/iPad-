@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Zenvy — video kinetic typography 20 s, format vertical 9:16 (1080x1920).
+"""Zenvy — video kinetic typography 15 s, format vertical 9:16 (1080x1920).
 
 Style : blocs de capitales Anton etires sur toute la largeur, contraste de
 tailles dans chaque ligne, mots qui claquent un par un avec flou directionnel,
@@ -569,7 +569,7 @@ def render_frame(t):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--stills", help="temps (s) separes par des virgules -> PNG de controle")
-    ap.add_argument("--out", default=os.path.join(OUT_DIR, "zenvy_kinetic_20s.mp4"))
+    ap.add_argument("--out", default=os.path.join(OUT_DIR, f"zenvy_kinetic_{int(DUR)}s.mp4"))
     ap.add_argument("--audio", default=os.path.join(OUT_DIR, "zenvy_audio.wav"))
     args = ap.parse_args()
 

@@ -7,7 +7,7 @@ impacts sur les deux chutes, riser puis pop sur la reveal de la marque.
 
 Les instants viennent de timing.py : la bande son reste calee sur l'image.
 
-Sortie : out/zenvy_audio.wav (48 kHz, stereo, 20 s)
+Sortie : out/zenvy_audio.wav (48 kHz, stereo, duree = timing.DUR)
 """
 
 import os
@@ -114,9 +114,9 @@ dry = np.zeros(N)   # signal direct
 send = np.zeros(N)  # bus vers la reverb
 
 # --- 1. Drone sub / nappe -------------------------------------------------
-drone_env = smoothstep(T / 1.2) * (1.0 - smoothstep((T - 19.1) / 0.9))
-drone_env = drone_env * (1.0 + 0.55 * smoothstep((T - 12.8) / 3.0)
-                         * (1 - smoothstep((T - 18.6) / 1.2)))
+drone_env = smoothstep(T / 1.2) * (1.0 - smoothstep((T - (TM.FINAL_IN + 0.1)) / 0.85))
+drone_env = drone_env * (1.0 + 0.55 * smoothstep((T - (TM.ZEN_IN - 3.0)) / 2.6)
+                         * (1 - smoothstep((T - (TM.ZEN_SHRINK - 0.2)) / 1.0)))
 
 drone = (
     0.50 * np.sin(2 * np.pi * 55.0 * T)
@@ -127,12 +127,12 @@ drone = (
 drone *= drone_env * 0.16
 dry += drone
 
-cut = 380 + 260 * np.sin(2 * np.pi * 0.06 * T) + 1500 * smoothstep((T - 13.0) / 3.0)
+cut = 380 + 260 * np.sin(2 * np.pi * 0.06 * T) + 1500 * smoothstep((T - (TM.ZEN_IN - 2.8)) / 2.8)
 pad = onepole_hp(onepole_lp(rng.normal(0, 1, N), cut), 90.0) * 0.055 * drone_env
 dry += pad
 send += pad * 0.5
 
-sh_env = smoothstep((T - TM.ZEN_IN) / 0.5) * (1.0 - smoothstep((T - 19.2) / 0.8))
+sh_env = smoothstep((T - TM.ZEN_IN) / 0.5) * (1.0 - smoothstep((T - (TM.FINAL_IN + 0.2)) / 0.8))
 shimmer = (
     0.6 * np.sin(2 * np.pi * 440.0 * T)
     + 0.4 * np.sin(2 * np.pi * 659.3 * T + 0.7)
@@ -143,8 +143,12 @@ dry += shimmer
 send += shimmer * 0.6
 
 # --- 2. Pulsations qui accelerent ----------------------------------------
-pulse_times = [0.30, 2.30, 4.30, 6.30, 8.30, 10.30, 12.30,
-               13.30, 14.05, 14.70, 15.25, 15.70]
+# train de pulsations qui se resserre jusqu'a la reveal
+pulse_times, _tp, _gap = [], 0.30, 1.35
+while _tp < TM.ZEN_IN - 0.30:
+    pulse_times.append(_tp)
+    _gap *= 0.90
+    _tp += _gap
 for i, pt in enumerate(pulse_times):
     e = env_exp(pt, 0.20 + 0.02 * i)
     thump = np.sin(2 * np.pi * 64.0 * (T - pt) * (T >= pt)) * e
@@ -168,21 +172,21 @@ for imp in TM.IMPACTS:
     send += (body + click) * 0.45
 
 # --- 5. Whooshes sur les sorties en whip ---------------------------------
-for i, wt in enumerate(TM.WHIPS):
-    if wt > 15.0:
+for wt in TM.WHIPS:
+    if wt > TM.ZEN_IN - 1.0:
         continue                      # la derniere sortie est couverte par le riser
     wh = noise_burst(0.26, 420, 6500, shape=0.75)
     add(dry, wh, wt - 0.04, 0.20)
     add(send, wh, wt - 0.04, 0.10)
 
-# --- 6. Riser 13 -> 16 s --------------------------------------------------
-ri = int(13.0 * SR)
-rn = int(2.95 * SR)
+# --- 6. Riser : montee vers la reveal --------------------------------------------------
+ri = int((TM.ZEN_IN - 2.75) * SR)
+rn = int(2.75 * SR)
 rt = np.arange(rn) / SR
 riser = onepole_lp(rng.normal(0, 1, rn), 300 * (1 + 14 * (rt / rt[-1]) ** 2.2))
 riser = onepole_hp(riser, 200 + 1600 * (rt / rt[-1]) ** 2)
 riser *= (rt / rt[-1]) ** 2.0 * 0.30
-riser *= 1.0 - smoothstep((rt - 2.85) / 0.10)
+riser *= 1.0 - smoothstep((rt - (rt[-1] - 0.10)) / 0.10)
 dry[ri:ri + rn] += riser
 send[ri:ri + rn] += riser * 0.4
 
@@ -247,4 +251,4 @@ with wave.open(path, "wb") as w:
 
 print(f"audio ecrit : {path}  ({DUR:.1f}s, {SR} Hz, stereo)")
 print(f"  {len(TM.ALL_WORD_TIMES)} ticks, {len(TM.IMPACTS)} impacts, "
-      f"{len([w for w in TM.WHIPS if w <= 15.0])} whooshes")
+      f"{len([w for w in TM.WHIPS if w <= TM.ZEN_IN - 1.0])} whooshes")

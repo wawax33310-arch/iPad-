@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Genere l'ambiance sonore puis la video finale (out/zenvy_kinetic_20s.mp4).
+# Genere l'ambiance sonore puis la video finale (out/zenvy_kinetic_<duree>s.mp4).
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
@@ -9,4 +9,4 @@ python3 zenvy_kinetic/render_video.py
 
 echo
 echo "Termine :"
-ls -lh out/zenvy_kinetic_20s.mp4
+ls -lh out/zenvy_kinetic_*s.mp4
