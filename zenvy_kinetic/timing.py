@@ -11,7 +11,11 @@ de liaison discret, 1,0 = mot cle).
 """
 
 FPS = 60
-DUR = 15.0
+DUR = 13.0
+
+# Le montage est cale sur une grille de tempo : la reveal tombe sur le 24e
+# temps, et chaque bloc arrive sur un temps. BPM = 60 / BEAT ~ 134,6.
+BEAT = 10.70 / 24.0
 
 WHITE = "white"
 DIM = "dim"
@@ -33,8 +37,8 @@ SEGMENTS = [
             [("CE", 0.5), ("MOMENT", 1.0)],
             [("OÙ ON VEUT", 0.5), ("SORTIR…", 1.0)],
         ],
-        "start": 0.15, "stagger": 0.058, "punch": 0.16,
-        "out": 2.74, "outdur": 0.16, "whip": (-1.0, -0.12),
+        "start": 0.06, "stagger": 0.052, "punch": 0.15,
+        "out": 2.079, "outdur": 0.15, "whip": (-1.0, -0.12),
     },
     {
         "key": "s2",
@@ -44,8 +48,8 @@ SEGMENTS = [
             [("…MAIS", 0.55), ("PERSONNE", 1.0)],
             [("N’EST", 0.55), ("DISPO.", 1.0)],
         ],
-        "start": 2.96, "fall": 0.15,
-        "out": 5.12, "outdur": 0.16, "whip": (0.0, -1.0),
+        "start": 2.089, "fall": 0.14,
+        "out": 4.308, "outdur": 0.15, "whip": (0.0, -1.0),
     },
     {
         "key": "s3",
@@ -56,8 +60,8 @@ SEGMENTS = [
             [("OU ON", 0.5), ("EST", 1.0)],
             [("DISPO…", 1.0)],
         ],
-        "start": 5.34, "stagger": 0.054, "punch": 0.16,
-        "out": 7.42, "outdur": 0.16, "whip": (1.0, -0.12),
+        "start": 4.458, "stagger": 0.050, "punch": 0.15,
+        "out": 6.092, "outdur": 0.15, "whip": (1.0, -0.12),
     },
     {
         "key": "s4",
@@ -67,8 +71,8 @@ SEGMENTS = [
             [("…MAIS ON", 0.5), ("SAIT PAS", 1.0)],
             [("OÙ", 0.5), ("ALLER.", 1.0)],
         ],
-        "start": 7.64, "fall": 0.15,
-        "out": 9.82, "outdur": 0.16, "whip": (0.0, -1.0),
+        "start": 6.102, "fall": 0.14,
+        "out": 8.321, "outdur": 0.15, "whip": (0.0, -1.0),
     },
     {
         "key": "s5",
@@ -81,17 +85,17 @@ SEGMENTS = [
             [("TOUT,", 1.0)],
             [("TOUT DE", 0.55), ("SUITE ?", 1.0)],
         ],
-        "start": 10.04, "stagger": 0.042, "punch": 0.13,
-        "out": 11.94, "outdur": 0.18, "whip": (0.0, 0.0),  # sortie en zoom
+        "start": 8.471, "stagger": 0.040, "punch": 0.13,
+        "out": 10.54, "outdur": 0.16, "whip": (0.0, 0.0),  # sortie en zoom
     },
 ]
 
 # --- reveal de la marque --------------------------------------------------
 
-ZEN_IN = 12.25         # flash + logo
-ZEN_SHRINK = 13.70     # le bloc marque recule
-ZEN_SHRINK_D = 0.35
-FINAL_IN = 14.00       # carton "Lance 20 août à Bordeaux"
+ZEN_IN = 10.70         # flash + logo, sur le 24e temps
+ZEN_SHRINK = 11.59     # le bloc marque recule
+ZEN_SHRINK_D = 0.30
+FINAL_IN = 12.04       # carton "Lance 20 août à Bordeaux"
 
 
 def segment(key):

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Zenvy — video kinetic typography 15 s, format vertical 9:16 (1080x1920).
+"""Zenvy — video kinetic typography 13 s, format vertical 9:16 (1080x1920).
 
 Style : blocs de capitales Anton etires sur toute la largeur, contraste de
 tailles dans chaque ligne, mots qui claquent un par un avec flou directionnel,
@@ -47,9 +47,9 @@ COLORS = {
 ACCENT = COLORS[TM.ACCENT]
 
 CX = W // 2
-BLOCK_W = 816          # largeur utile des blocs : marges franches sur les cotes
+BLOCK_W = 688          # largeur utile des blocs : marges franches sur les cotes
 BLOCK_Y = 962          # centre vertical des blocs
-MAX_SIZE = 235         # garde-fou sur les lignes d'un seul mot court
+MAX_SIZE = 196         # garde-fou sur les lignes d'un seul mot court
 BASE_SIZE = 120        # taille de reference avant etirement
 
 # ---------------------------------------------------------------- easing
