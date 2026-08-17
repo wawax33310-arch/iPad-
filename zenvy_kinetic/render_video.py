@@ -316,6 +316,7 @@ WORD_Y = 1198     # ligne de base du mot ZENVY
 WORD_SIZE = 210
 WORD_TRACK = 10
 FINAL_Y = 1130
+FINAL_W = 880          # largeur max du carton final
 BRAND_SHRINK = 0.52
 BRAND_UP = -140.0
 
@@ -390,16 +391,25 @@ def draw_final(canvas, t, ox, oy):
     a = ease_out_cubic(p)
     dy = 16.0 * (1 - ease_out_expo(p))
 
-    size = 62
-    fnt = font(size)
+    parts = [("Lancement le", COLORS[TM.WHITE]), ("20 août", ACCENT),
+             ("à Bordeaux", COLORS[TM.WHITE])]
     track = 3.0
-    parts = [("Lance", COLORS[TM.WHITE]), ("20 août", ACCENT), ("à Bordeaux", COLORS[TM.WHITE])]
+
+    # la ligne se met a la taille qui tient dans la largeur utile
+    size = 62
+    while size > 30:
+        fnt = font(size)
+        widths = [sum(fnt.getlength(c) for c in txt) + track * (len(txt) - 1)
+                  for txt, _ in parts]
+        total = sum(widths) + fnt.getlength(" ") * (len(parts) - 1)
+        if total <= FINAL_W:
+            break
+        size -= 2
+
+    fnt = font(size)
     gap = fnt.getlength(" ")
-    widths = [sum(fnt.getlength(c) for c in txt) + track * (len(txt) - 1)
-              for txt, _ in parts]
-    total = sum(widths) + gap * (len(parts) - 1)
     asc, _ = fnt.getmetrics()
-    bb = fnt.getbbox("Lance à Bordeaux")
+    bb = fnt.getbbox("Lancement le à Bordeaux")
     baseline = FINAL_Y - ((bb[1] + bb[3]) / 2 - asc)
 
     # filet accent au-dessus du carton

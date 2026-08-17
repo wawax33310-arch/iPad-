@@ -31,7 +31,7 @@ H.264 (yuv420p) + AAC stéréo 48 kHz.
 | 10 – 13 s | *…mais on sait pas où aller.* | même mécanique de chute que la première |
 | 13 – 16 s | *Et si on savait tout, tout de suite ?* | cadence 48 ms, push-in plus marqué, accent orange sur « TOUT DE SUITE ? », sortie en zoom vers la caméra |
 | 16 – 19 s | **logo + Zenvy** | flash, pop d'échelle avec dépassement, interlettrage qui se resserre, halo orange pulsé, whoosh + pop sonore |
-| 19 – 20 s | *Lance 20 août à Bordeaux* | la marque recule en haut, filet accent + carton final fixe |
+| 19 – 20 s | *Lancement le 20 août à Bordeaux* | la marque recule en haut, filet accent + carton final fixe |
 
 Le rythme accélère en continu jusqu'à la révélation (65 → 60 → 48 ms entre les
 mots, pulsations audio de 2 s à 0,45 s), puis se stabilise sur le carton final.
