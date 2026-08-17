@@ -1,17 +1,12 @@
 #!/usr/bin/env python3
 """Zenvy — video kinetic typography 20 s, format vertical 9:16 (1080x1920).
 
+Style : blocs de capitales Anton etires sur toute la largeur, contraste de
+tailles dans chaque ligne, mots qui claquent un par un avec flou directionnel,
+sorties en whip. Reveal de la marque avec le logo Zenvy.
+
 Rendu image par image avec Pillow, encodage H.264 via ffmpeg (pipe rawvideo),
 audio muxe depuis out/zenvy_audio.wav.
-
-Sequence :
-  0-4 s    "On a tous ce moment ou on veut sortir..."  mot a mot, doux
-  4-7 s    "...mais personne n'est dispo."             chute + ecrasement
-  7-10 s   "Ou on est dispo..."                        reprise douce
-  10-13 s  "...mais on sait pas ou aller."             deuxieme chute
-  13-16 s  "Et si on savait tout, tout de suite ?"     rapide, ca monte
-  16-19 s  "Zenvy"                                     flash + pulse, accent
-  19-20 s  "Bordeaux, 20 aout."                        carton final fixe
 
 Usage :
   python3 render_video.py                 # rendu complet
@@ -27,26 +22,35 @@ import sys
 import numpy as np
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
+import timing as TM
+
 # ---------------------------------------------------------------- config
 
 W, H = 1080, 1920
-FPS = 60
-DUR = 20.0
+FPS = TM.FPS
+DUR = TM.DUR
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
-FONT_BOLD = os.path.join(HERE, "fonts", "Poppins-Bold.ttf")
-FONT_XBOLD = os.path.join(HERE, "fonts", "Poppins-ExtraBold.ttf")
+FONT = os.path.join(HERE, "fonts", "Anton-Regular.ttf")
+LOGO_PATH = os.path.join(HERE, "assets", "zenvy_logo.png")
 OUT_DIR = os.path.join(ROOT, "out")
 
-# palette : fond bleu nuit profond, un seul accent (vert menthe)
-BG_TOP = (11, 18, 34)
-BG_BOT = (4, 6, 13)
-WHITE = (244, 247, 251)
-DIM = (176, 186, 203)      # segments "qui retombent"
-ACCENT = (46, 230, 168)    # vert menthe, uniquement sur les mots cles
+# palette calee sur le logo : bleu nuit profond, accent orange de la marque
+BG_TOP = (10, 15, 42)
+BG_BOT = (3, 5, 14)
+COLORS = {
+    TM.WHITE: (245, 247, 252),
+    TM.DIM: (148, 158, 186),
+    TM.ACCENT: (250, 140, 25),
+}
+ACCENT = COLORS[TM.ACCENT]
 
 CX = W // 2
+BLOCK_W = 936          # largeur utile des blocs de texte
+BLOCK_Y = 968          # centre vertical des blocs
+MAX_SIZE = 300         # garde-fou sur les lignes d'un seul mot court
+BASE_SIZE = 120        # taille de reference avant etirement
 
 # ---------------------------------------------------------------- easing
 
@@ -84,97 +88,138 @@ def ease_out_back(x, s=1.9):
 
 _font_cache = {}
 _glyph_cache = {}
-PAD = 26  # marge autour du glyphe pour absorber le flou
+PAD = 30  # marge autour du glyphe pour absorber le flou
 
 
-def font(path, size):
-    key = (path, size)
-    if key not in _font_cache:
-        _font_cache[key] = ImageFont.truetype(path, size)
-    return _font_cache[key]
+def font(size):
+    size = max(8, int(size))
+    if size not in _font_cache:
+        _font_cache[size] = ImageFont.truetype(FONT, size)
+    return _font_cache[size]
 
 
 class Glyph:
-    """Un mot pre-rendu, cale sur sa ligne de base pour un layout stable."""
+    """Un mot pre-rendu, cale sur sa ligne de base."""
 
-    __slots__ = ("img", "adv", "asc", "desc")
+    __slots__ = ("img", "adv", "asc", "top", "bottom")
 
-    def __init__(self, text, fnt, color):
-        self.asc, self.desc = fnt.getmetrics()
+    def __init__(self, text, size, color):
+        fnt = font(size)
+        self.asc, desc = fnt.getmetrics()
         self.adv = fnt.getlength(text)
+        bb = fnt.getbbox(text)                 # repere : ligne d'ascendante
+        self.top = bb[1] - self.asc            # encre au-dessus de la base
+        self.bottom = bb[3] - self.asc         # encre sous la base
         w = int(math.ceil(self.adv)) + 2 * PAD
-        h = self.asc + self.desc + 2 * PAD
+        h = self.asc + desc + 2 * PAD
         im = Image.new("RGBA", (w, h), (0, 0, 0, 0))
-        d = ImageDraw.Draw(im)
-        d.text((PAD, PAD + self.asc), text, font=fnt, fill=color + (255,), anchor="ls")
+        ImageDraw.Draw(im).text((PAD, PAD + self.asc), text, font=fnt,
+                                fill=color + (255,), anchor="ls")
         self.img = im
 
 
-def glyph(text, fnt_path, size, color):
-    key = (text, fnt_path, size, color)
+def glyph(text, size, color):
+    key = (text, int(size), color)
     g = _glyph_cache.get(key)
     if g is None:
-        g = Glyph(text, font(fnt_path, size), color)
+        g = Glyph(text, int(size), color)
         _glyph_cache[key] = g
     return g
 
 
-def layout(tokens, fnt_path, size, color, max_width, center_y, line_gap=1.14):
-    """Repartit les mots sur plusieurs lignes centrees.
+def build_block(seg):
+    """Compose un segment : chaque ligne est etiree sur BLOCK_W.
 
-    Retourne (items, block_top, block_bottom) ou chaque item porte le centre
-    (cx, cy) du rectangle naturel du glyphe.
+    Retourne la liste des mots avec leur centre (cx, cy) et le rectangle du
+    bloc, le tout dans un repere centre sur (CX, BLOCK_Y).
     """
-    fnt = font(fnt_path, size)
-    space = fnt.getlength(" ")
-    lines, cur, cur_w = [], [], 0.0
-    for tok in tokens:
-        adv = fnt.getlength(tok)
-        add_w = adv if not cur else cur_w + space + adv
-        if cur and add_w > max_width:
-            lines.append((cur, cur_w))
-            cur, cur_w = [tok], adv
-        else:
-            cur, cur_w = cur + [tok], add_w
-    if cur:
-        lines.append((cur, cur_w))
+    accent = seg.get("accent", set())
+    base_col = COLORS[seg["color"]]
 
-    asc, desc = fnt.getmetrics()
-    line_h = (asc + desc) * line_gap
-    total_h = line_h * len(lines)
-    top = center_y - total_h / 2
+    laid = []
+    for line in seg["lines"]:
+        # 1re passe a taille de reference pour mesurer, puis mise a l'echelle
+        sizes = [BASE_SIZE * w for _, w in line]
+        widths = [font(s).getlength(txt) for (txt, _), s in zip(line, sizes)]
+        space = font(BASE_SIZE * max(w for _, w in line)).getlength(" ")
+        total = sum(widths) + space * (len(line) - 1)
+        k = min(BLOCK_W / total, MAX_SIZE / max(sizes))
+        sizes = [s * k for s in sizes]
+
+        glyphs = []
+        for (txt, _), s in zip(line, sizes):
+            col = ACCENT if txt in accent else base_col
+            glyphs.append(glyph(txt, s, col))
+        sp = font(max(sizes)).getlength(" ")
+        line_w = sum(g.adv for g in glyphs) + sp * (len(glyphs) - 1)
+        laid.append({"glyphs": glyphs, "w": line_w, "sp": sp,
+                     "top": min(g.top for g in glyphs),
+                     "bottom": max(g.bottom for g in glyphs)})
+
+    # empilement serre, en tenant compte de l'encre reelle (accents compris)
+    gap = BASE_SIZE * 0.13
+    cursor = 0.0
+    for ln in laid:
+        ln["baseline"] = cursor - ln["top"]
+        cursor = ln["baseline"] + ln["bottom"] + gap
+    total_h = cursor - gap
+    shift = BLOCK_Y - total_h / 2
 
     items = []
-    for li, (words, line_w) in enumerate(lines):
-        baseline = top + asc + li * line_h
-        pen = CX - line_w / 2
-        for word in words:
-            g = glyph(word, fnt_path, size, color[word] if isinstance(color, dict) else color)
+    for ln in laid:
+        pen = CX - ln["w"] / 2
+        for g in ln["glyphs"]:
             items.append({
                 "g": g,
                 "cx": pen - PAD + g.img.width / 2,
-                "cy": baseline - g.asc - PAD + g.img.height / 2,
-                "line": li,
+                "cy": ln["baseline"] + shift - g.asc - PAD + g.img.height / 2,
             })
-            pen += g.adv + space
-    return items, top, top + total_h
+            pen += g.adv + ln["sp"]
+    return items, shift, shift + total_h
 
 
-def paste(canvas, g, cx, cy, scale=1.0, alpha=1.0, blur=0.0, sx=1.0, sy=1.0):
+_block_cache = {}
+
+
+def block(seg):
+    if seg["key"] not in _block_cache:
+        _block_cache[seg["key"]] = build_block(seg)
+    return _block_cache[seg["key"]]
+
+
+def paste(canvas, im, cx, cy, alpha=1.0):
     if alpha <= 0.004:
         return
-    im = g.img
+    if alpha < 0.996:
+        a = im.getchannel("A").point(lambda v, k=alpha: int(v * k))
+        im = im.copy()
+        im.putalpha(a)
+    canvas.alpha_composite(im, (int(round(cx - im.width / 2)),
+                                int(round(cy - im.height / 2))))
+
+
+def transform(g, scale=1.0, blur=0.0, sx=1.0, sy=1.0):
+    im = g.img if hasattr(g, "img") else g
     tw = max(1, int(round(im.width * scale * sx)))
     th = max(1, int(round(im.height * scale * sy)))
     if (tw, th) != im.size:
         im = im.resize((tw, th), Image.BILINEAR)
     if blur > 0.35:
         im = im.filter(ImageFilter.GaussianBlur(blur))
-    if alpha < 0.996:
-        a = im.getchannel("A").point(lambda v, k=alpha: int(v * k))
-        im = im.copy()
-        im.putalpha(a)
-    canvas.alpha_composite(im, (int(round(cx - tw / 2)), int(round(cy - th / 2))))
+    return im
+
+
+def paste_mb(canvas, im, cx, cy, alpha, vx, vy, samples=8):
+    """Flou de mouvement par accumulation le long du vecteur vitesse."""
+    d = math.hypot(vx, vy)
+    if d < 2.0 or samples <= 1:
+        paste(canvas, im, cx, cy, alpha)
+        return
+    n = min(samples, max(2, int(d / 7)))
+    a = alpha / n
+    for i in range(n):
+        f = (i / (n - 1) - 0.5)
+        paste(canvas, im, cx + vx * f, cy + vy * f, a)
 
 
 # ---------------------------------------------------------------- decor
@@ -190,18 +235,14 @@ def build_background():
     xx = (np.arange(W, dtype=np.float32) - CX) / (W * 0.62)
     yy = (np.arange(H, dtype=np.float32) - H * 0.47) / (H * 0.55)
     r2 = xx[None, :] ** 2 + yy[:, None] ** 2
-
-    # halo froid tres discret au centre
-    bg += np.exp(-r2 * 2.4)[..., None] * np.array([10, 16, 30], dtype=np.float32)
-    # vignette
-    bg *= np.clip(1.0 - 0.42 * r2, 0.42, 1.0)[..., None]
+    bg += np.exp(-r2 * 2.4)[..., None] * np.array([12, 16, 34], dtype=np.float32)
+    bg *= np.clip(1.0 - 0.44 * r2, 0.40, 1.0)[..., None]
     return np.clip(bg, 0, 255).astype(np.uint8)
 
 
 def build_glow():
-    """Masque radial reutilise pour le halo accent derriere 'Zenvy'."""
-    xx = (np.arange(W, dtype=np.float32) - CX) / (W * 0.48)
-    yy = (np.arange(H, dtype=np.float32) - H * 0.49) / (H * 0.34)
+    xx = (np.arange(W, dtype=np.float32) - CX) / (W * 0.52)
+    yy = (np.arange(H, dtype=np.float32) - H * 0.44) / (H * 0.32)
     r2 = xx[None, :] ** 2 + yy[:, None] ** 2
     return np.exp(-r2 * 2.0).astype(np.float32)
 
@@ -210,69 +251,211 @@ BG = build_background()
 GLOW = build_glow()
 ACCENT_F = np.array(ACCENT, dtype=np.float32)
 _rng = np.random.default_rng(7)
-# grain leger : casse le banding du degrade sans faire exploser le debit
 GRAIN = [(_rng.normal(0, 1.7, (H, W))).astype(np.int16) for _ in range(8)]
 
-# ---------------------------------------------------------------- sequence
-
-S1 = {
-    "tokens": "On a tous ce moment où on veut sortir…".split(),
-    "size": 78, "maxw": 860, "y": 962,
-    "start": 0.30, "gap": 0.30, "rev": 0.55,
-    "out": 3.78, "outdur": 0.26,
-}
-S3 = {
-    "tokens": "Ou on est dispo…".split(),
-    "size": 78, "maxw": 860, "y": 962,
-    "start": 7.18, "gap": 0.26, "rev": 0.50,
-    "out": 9.76, "outdur": 0.24,
-}
-S2 = {
-    "tokens": "…mais personne n’est dispo.".split(),
-    "size": 94, "maxw": 900, "y": 962,
-    "drop": 4.12, "fall": 0.30, "out": 6.74, "outdur": 0.26,
-}
-S4 = {
-    "tokens": "…mais on sait pas où aller.".split(),
-    "size": 94, "maxw": 900, "y": 962,
-    "drop": 10.10, "fall": 0.30, "out": 12.74, "outdur": 0.26,
-}
-S5 = {
-    "tokens": ["Et", "si", "on", "savait", "tout,", "tout", "de", "suite ?"],
-    "accent": {"tout", "de", "suite ?"},
-    "size": 106, "maxw": 900, "y": 962,
-    "start": 13.08, "gap": 0.145, "rev": 0.30,
-    "out": 15.58, "outdur": 0.24,
-}
-
-ZEN_IN = 16.0        # impact / flash
-ZEN_SHRINK = 18.55   # le mot recule pour laisser place au carton final
-ZEN_SHRINK_D = 0.42
-ZEN_Y_BIG, ZEN_Y_SMALL = 946.0, 806.0
-ZEN_S_SMALL = 0.50
-FINAL_IN = 19.0
+LOGO = Image.open(LOGO_PATH).convert("RGBA")
+LOGO_H = 540
+LOGO = LOGO.resize((int(LOGO.width * LOGO_H / LOGO.height), LOGO_H), Image.LANCZOS)
+_logo_scaled = {}
 
 
-def fit_size(text, fnt_path, target_w, lo=80, hi=460):
-    """Plus grande taille dont la largeur reste sous target_w."""
-    best = lo
-    while lo <= hi:
-        mid = (lo + hi) // 2
-        if font(fnt_path, mid).getlength(text) <= target_w:
-            best, lo = mid, mid + 1
+def logo_at(scale):
+    k = round(scale, 3)
+    if k not in _logo_scaled:
+        w = max(1, int(LOGO.width * k))
+        h = max(1, int(LOGO.height * k))
+        _logo_scaled[k] = LOGO.resize((w, h), Image.LANCZOS)
+    return _logo_scaled[k]
+
+
+# ---------------------------------------------------------------- marque
+
+MARK_Y = 812      # centre du logo pendant la reveal
+WORD_Y = 1198     # ligne de base du mot ZENVY
+WORD_SIZE = 210
+WORD_TRACK = 10
+FINAL_Y = 1130
+BRAND_SHRINK = 0.52
+BRAND_UP = -140.0
+
+
+def brand_state(t):
+    """Echelle, decalage vertical et intensite du halo du bloc marque."""
+    p = clamp01((t - TM.ZEN_IN) / 0.34)
+    scale = 0.68 + 0.32 * ease_out_back(p, 2.2)
+    u = max(0.0, t - (TM.ZEN_IN + 0.32))
+    pulse = math.sin(2 * math.pi * 1.5 * u) * math.exp(-u / 1.7)
+    scale *= 1.0 + 0.020 * pulse
+
+    dy = 0.0
+    k = clamp01((t - TM.ZEN_SHRINK) / TM.ZEN_SHRINK_D)
+    if k > 0:
+        e = ease_in_out_cubic(k)
+        scale *= 1.0 + (BRAND_SHRINK - 1.0) * e
+        dy = BRAND_UP * e
+
+    glow = ease_out_cubic(clamp01((t - TM.ZEN_IN) / 0.20))
+    glow *= 0.70 + 0.30 * math.exp(-max(0.0, t - TM.ZEN_IN) / 1.5)
+    glow *= 1.0 + 0.25 * pulse
+    glow *= 1.0 - 0.55 * k
+    return scale, dy, glow, p
+
+
+def draw_tracked(canvas, text, size, color, cy_center, scale, alpha, track,
+                 ox, oy, blur=0.0):
+    """Texte en capitales avec interlettrage, centre optiquement."""
+    fnt = font(size)
+    asc, _ = fnt.getmetrics()
+    advs = [fnt.getlength(c) for c in text]
+    total = sum(advs) + track * (len(text) - 1)
+    bb = fnt.getbbox(text)
+    baseline = cy_center - ((bb[1] + bb[3]) / 2 - asc) * scale
+
+    pen = -total / 2
+    for ch, adv in zip(text, advs):
+        if ch != " ":
+            g = glyph(ch, size, color)
+            im = transform(g, scale, blur)
+            paste(canvas, im, CX + (pen - PAD + g.img.width / 2) * scale + ox,
+                  baseline + (-g.asc - PAD + g.img.height / 2) * scale + oy, alpha)
+        pen += adv + track
+
+
+def draw_brand(canvas, t, ox, oy):
+    if t < TM.ZEN_IN - 0.02:
+        return
+    scale, dy, _, p = brand_state(t)
+    a = clamp01((t - TM.ZEN_IN) / 0.12)
+    blur = 6.0 * (1 - clamp01((t - TM.ZEN_IN) / 0.22))
+
+    entry = 26.0 * (1 - ease_out_expo(p))
+
+    mark = logo_at(scale)
+    if blur > 0.35:
+        mark = mark.filter(ImageFilter.GaussianBlur(blur))
+    paste(canvas, mark, CX + ox, MARK_Y + dy + entry + oy, a)
+
+    # le mot reste solidaire du logo : il s'ecarte proportionnellement a l'echelle
+    word_cy = MARK_Y + dy + (WORD_Y - MARK_Y) * scale
+    track = WORD_TRACK + 60 * (1 - ease_out_expo(clamp01((t - TM.ZEN_IN) / 0.45)))
+    draw_tracked(canvas, "ZENVY", WORD_SIZE, ACCENT, word_cy, scale, a, track,
+                 ox, oy + entry, blur)
+
+
+def draw_final(canvas, t, ox, oy):
+    if t < TM.FINAL_IN:
+        return
+    p = clamp01((t - TM.FINAL_IN) / 0.30)
+    a = ease_out_cubic(p)
+    dy = 16.0 * (1 - ease_out_expo(p))
+
+    size = 62
+    fnt = font(size)
+    track = 7.0
+    parts = [("BORDEAUX", COLORS[TM.WHITE]), ("—", COLORS[TM.DIM]), ("20 AOÛT", ACCENT)]
+    gap = fnt.getlength(" ") * 1.6
+    widths = [sum(fnt.getlength(c) for c in txt) + track * (len(txt) - 1)
+              for txt, _ in parts]
+    total = sum(widths) + gap * (len(parts) - 1)
+    asc, _ = fnt.getmetrics()
+    bb = fnt.getbbox("BORDEAUX")
+    baseline = FINAL_Y - ((bb[1] + bb[3]) / 2 - asc)
+
+    # filet accent au-dessus du carton
+    lw = 104 * a
+    if lw > 1:
+        ov = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+        ly = FINAL_Y - 66 + dy + oy
+        ImageDraw.Draw(ov).rounded_rectangle(
+            [CX - lw / 2 + ox, ly - 2, CX + lw / 2 + ox, ly + 2],
+            radius=2, fill=ACCENT + (int(220 * a),))
+        canvas.alpha_composite(ov)
+
+    pen = CX - total / 2
+    for (txt, col), wdt in zip(parts, widths):
+        for ch in txt:
+            g = glyph(ch, size, col)
+            paste(canvas, g.img, pen - PAD + g.img.width / 2 + ox,
+                  baseline - g.asc - PAD + g.img.height / 2 + dy + oy, a)
+            pen += fnt.getlength(ch) + track
+        pen += gap - track
+
+
+# ---------------------------------------------------------------- segments
+
+
+def seg_alive(seg, t):
+    end = seg["out"] + seg["outdur"]
+    start = seg["start"] - 0.05
+    return start <= t <= end
+
+
+def draw_segment(canvas, seg, t, ox, oy):
+    if not seg_alive(seg, t):
+        return
+    items, top, bottom = block(seg)
+
+    # respiration du bloc : leger push-in pendant la tenue
+    hold = clamp01((t - seg["start"]) / max(0.4, seg["out"] - seg["start"]))
+    push = 1.0 + 0.045 * ease_out_cubic(hold)
+    if seg["key"] == "s5":
+        push = 1.0 + 0.11 * ease_in_out_cubic(hold)   # le ton monte
+
+    # sortie : whip lateral ou zoom avant
+    op = clamp01((t - seg["out"]) / seg["outdur"])
+    wx, wy = seg["whip"]
+    out_a = 1.0 - ease_in_quad(op) ** 0.85
+    e = ease_in_quad(op)
+    off_x, off_y = wx * 1180.0 * e, wy * 900.0 * e
+    vx, vy = wx * 240.0 * op, wy * 200.0 * op
+    if seg["key"] == "s5":
+        push *= 1.0 + 1.05 * e                        # explose vers la camera
+        vx = vy = 0.0
+
+    for i, it in enumerate(items):
+        if seg["mode"] == "punch":
+            p = clamp01((t - (seg["start"] + i * seg["stagger"])) / seg["punch"])
+            if p <= 0:
+                continue
+            a = clamp01(p / 0.30) * out_a
+            s = push * (1.0 + 0.30 * (1 - ease_out_expo(p)))
+            dy = 34.0 * (1 - ease_out_expo(p))
+            mb = 150.0 * (1 - p) ** 2          # trainee verticale du claquement
+            blur = 3.0 * (1 - clamp01(p / 0.35))
+            sx = sy = 1.0
         else:
-            hi = mid - 1
-    return best
+            land = TM.land_time(seg)
+            if t < land:
+                p = clamp01((t - seg["start"]) / seg["fall"])
+                a = clamp01(p / 0.35) * out_a
+                dy = -420.0 * (1 - ease_in_quad(p))
+                mb = 300.0 * (1 - p)           # trainee de la chute
+                s, blur, sx, sy = push, 1.5, 1.0, 1.0
+            else:
+                u = t - land
+                q = math.exp(-u * 9.0) * math.cos(2 * math.pi * 3.2 * u)
+                sx, sy = 1.0 + 0.13 * q, 1.0 - 0.20 * q
+                a, dy, mb, blur, s = out_a, 0.0, 0.0, 0.0, push
+
+        cx = CX + (it["cx"] - CX) * s
+        cy = BLOCK_Y + (it["cy"] - BLOCK_Y) * s
+        if sx != 1.0 or sy != 1.0:
+            # ecrasement ancre sur le bas du bloc : les mots gardent les pieds au sol
+            bottom_s = BLOCK_Y + (bottom - BLOCK_Y) * s
+            cy = bottom_s - (bottom_s - cy) * sy
+            cx = CX + (cx - CX) * sx
+
+        im = transform(it["g"], s, blur + 4.0 * op, sx, sy)
+        paste_mb(canvas, im, cx + off_x + ox, cy + dy + off_y + oy, a,
+                 vx, vy - mb)
 
 
-ZEN_SIZE = fit_size("Zenvy", FONT_XBOLD, 830)
-ZEN_LETTERS = list("Zenvy")
+# ---------------------------------------------------------------- frame
 
 
 def shake(t):
-    """Secousse courte sur les deux impacts + sur la reveal."""
     dx = dy = 0.0
-    for t0, amp in ((4.42, 15.0), (10.36, 15.0), (16.0, 22.0)):
+    for t0, amp in [(TM.IMPACTS[0], 17.0), (TM.IMPACTS[1], 17.0), (TM.ZEN_IN, 24.0)]:
         u = t - t0
         if 0 <= u < 0.45:
             k = math.exp(-u * 11.0) * amp
@@ -281,214 +464,27 @@ def shake(t):
     return dx, dy
 
 
-def breathe(t):
-    """Micro-derive verticale : evite l'image figee."""
-    return math.sin(t * 0.55) * 5.0
-
-
-# ---------------------------------------------------------------- segments
-
-
-def draw_soft_block(canvas, cfg, t, ox, oy):
-    """Segments 1 et 3 : construction mot a mot, apparition douce."""
-    end = cfg["out"] + cfg["outdur"]
-    if not (cfg["start"] - 0.05 <= t <= end):
-        return
-    items, _, _ = layout(cfg["tokens"], FONT_BOLD, cfg["size"], WHITE, cfg["maxw"], cfg["y"])
-
-    # sortie du bloc entier
-    op = clamp01((t - cfg["out"]) / cfg["outdur"])
-    out_a = 1.0 - ease_in_quad(op)
-    out_dy = -34.0 * ease_in_quad(op)
-    out_blur = 7.0 * op
-
-    for i, it in enumerate(items):
-        p = clamp01((t - (cfg["start"] + i * cfg["gap"])) / cfg["rev"])
-        if p <= 0:
-            continue
-        a = ease_out_cubic(p) * out_a
-        dy = 26.0 * (1 - ease_out_expo(p)) + out_dy
-        blur = max(6.5 * (1 - ease_out_cubic(min(1.0, p / 0.55))), out_blur)
-        s = 0.965 + 0.035 * ease_out_expo(p)
-        paste(canvas, it["g"], it["cx"] + ox, it["cy"] + dy + oy, s, a, blur)
-
-
-def draw_drop_block(canvas, cfg, t, ox, oy):
-    """Segments 2 et 4 : le bloc tombe et s'ecrase, l'ambiance retombe."""
-    end = cfg["out"] + cfg["outdur"]
-    if not (cfg["drop"] - 0.05 <= t <= end):
-        return
-    items, top, bottom = layout(cfg["tokens"], FONT_BOLD, cfg["size"], DIM, cfg["maxw"], cfg["y"])
-
-    land = cfg["drop"] + cfg["fall"]
-    if t < land:
-        p = clamp01((t - cfg["drop"]) / cfg["fall"])
-        dy = -300.0 * (1 - ease_in_quad(p))
-        a = clamp01(p / 0.42)
-        blur = 5.5 * (1 - p) + 1.0
-        sx = sy = 1.0
-    else:
-        u = t - land
-        q = math.exp(-u * 8.5) * math.cos(2 * math.pi * 3.1 * u)
-        sy = 1.0 - 0.19 * q
-        sx = 1.0 + 0.12 * q
-        dy = 0.0
-        a = 1.0
-        blur = 0.0
-
-    op = clamp01((t - cfg["out"]) / cfg["outdur"])
-    a *= 1.0 - ease_in_quad(op)
-    dy += 22.0 * ease_in_quad(op)
-    blur = max(blur, 6.0 * op)
-
-    for it in items:
-        # ecrasement ancre sur le bas du bloc : les mots gardent les pieds au sol
-        cy = bottom - (bottom - it["cy"]) * sy
-        cx = CX + (it["cx"] - CX) * sx
-        paste(canvas, it["g"], cx + ox, cy + dy + oy, 1.0, a, blur, sx, sy)
-
-
-def draw_fast_block(canvas, cfg, t, ox, oy):
-    """Segment 5 : plus rapide, le texte grossit, le ton monte."""
-    end = cfg["out"] + cfg["outdur"]
-    if not (cfg["start"] - 0.05 <= t <= end):
-        return
-    colors = {tok: (ACCENT if tok in cfg["accent"] else WHITE) for tok in cfg["tokens"]}
-    items, _, _ = layout(cfg["tokens"], FONT_BOLD, cfg["size"], colors, cfg["maxw"], cfg["y"])
-
-    grow = 1.0 + 0.10 * ease_in_out_cubic((t - cfg["start"]) / (cfg["out"] - cfg["start"]))
-    op = clamp01((t - cfg["out"]) / cfg["outdur"])
-    out_a = 1.0 - ease_in_quad(op)
-    grow *= 1.0 + 0.09 * op
-    out_blur = 9.0 * op
-
-    for i, it in enumerate(items):
-        p = clamp01((t - (cfg["start"] + i * cfg["gap"])) / cfg["rev"])
-        if p <= 0:
-            continue
-        a = clamp01(p / 0.35) * out_a
-        pop = 1.0 + 0.16 * (1 - ease_out_back(p))
-        dy = 16.0 * (1 - ease_out_expo(p))
-        blur = max(4.0 * (1 - clamp01(p / 0.4)), out_blur)
-        cx = CX + (it["cx"] - CX) * grow
-        cy = cfg["y"] + (it["cy"] - cfg["y"]) * grow
-        paste(canvas, it["g"], cx + ox, cy + dy + oy, grow * pop, a, blur)
-
-
-def zenvy_state(t):
-    """Echelle, position et intensite du halo pour le mot 'Zenvy'."""
-    p = clamp01((t - ZEN_IN) / 0.38)
-    scale = 0.70 + 0.30 * ease_out_back(p, 2.1)
-    u = max(0.0, t - (ZEN_IN + 0.36))
-    scale *= 1.0 + 0.022 * math.sin(2 * math.pi * 1.45 * u) * math.exp(-u / 1.9)
-    y = ZEN_Y_BIG
-    k = clamp01((t - ZEN_SHRINK) / ZEN_SHRINK_D)
-    if k > 0:
-        e = ease_in_out_cubic(k)
-        scale *= 1.0 + (ZEN_S_SMALL - 1.0) * e
-        y = ZEN_Y_BIG + (ZEN_Y_SMALL - ZEN_Y_BIG) * e
-    track = 44.0 * (1 - ease_out_expo(clamp01((t - ZEN_IN) / 0.5))) + 4.0
-    glow = ease_out_cubic(clamp01((t - ZEN_IN) / 0.22))
-    glow *= 0.72 + 0.28 * math.exp(-max(0.0, t - ZEN_IN) / 1.6)
-    glow *= 1.0 + 0.22 * math.sin(2 * math.pi * 1.45 * u) * math.exp(-u / 2.2)
-    glow *= 1.0 - 0.55 * clamp01((t - ZEN_SHRINK) / ZEN_SHRINK_D)
-    return scale, y, track, glow
-
-
-def draw_zenvy(canvas, t, ox, oy):
-    if t < ZEN_IN - 0.02:
-        return
-    scale, y, track, _ = zenvy_state(t)
-    fnt = font(FONT_XBOLD, ZEN_SIZE)
-    asc, _ = fnt.getmetrics()
-    advs = [fnt.getlength(c) for c in ZEN_LETTERS]
-    total = sum(advs) + track * (len(ZEN_LETTERS) - 1)
-
-    # centrage optique sur l'encre reelle du mot, pas sur la boite de police
-    bb = fnt.getbbox("Zenvy")
-    ink_mid = (bb[1] + bb[3]) / 2 - asc
-    baseline = y - ink_mid * scale
-
-    pen = -total / 2
-    for i, ch in enumerate(ZEN_LETTERS):
-        g = glyph(ch, FONT_XBOLD, ZEN_SIZE, ACCENT)
-        lx = pen - PAD + g.img.width / 2
-        ly = -g.asc - PAD + g.img.height / 2
-        # micro-decalage par lettre : le mot arrive d'un bloc, avec du relief
-        p = clamp01((t - (ZEN_IN + i * 0.012)) / 0.26)
-        a = clamp01(p / 0.22)
-        dy = 20.0 * (1 - ease_out_expo(p))
-        paste(canvas, g, CX + lx * scale + ox,
-              baseline + ly * scale + dy + oy, scale, a,
-              4.0 * (1 - clamp01(p / 0.30)))
-        pen += advs[i] + track
-
-
-def draw_final(canvas, t, ox, oy):
-    if t < FINAL_IN:
-        return
-    p = clamp01((t - FINAL_IN) / 0.34)
-    a = ease_out_cubic(p)
-    dy = 18.0 * (1 - ease_out_expo(p))
-    size = 60
-    fnt = font(FONT_BOLD, size)
-    parts = [("Bordeaux,", WHITE), ("20 août.", ACCENT)]
-    space = fnt.getlength(" ")
-    total = sum(fnt.getlength(s) for s, _ in parts) + space
-    y = 1128.0
-    asc, _ = fnt.getmetrics()
-
-    # filet accent discret au-dessus du carton
-    line_w = 96 * a
-    if line_w > 1:
-        ov = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-        d = ImageDraw.Draw(ov)
-        ly = y - 74 + dy + oy
-        d.rounded_rectangle(
-            [CX - line_w / 2 + ox, ly - 2, CX + line_w / 2 + ox, ly + 2],
-            radius=2, fill=ACCENT + (int(210 * a),))
-        canvas.alpha_composite(ov)
-
-    pen = CX - total / 2
-    for text, col in parts:
-        g = glyph(text, FONT_BOLD, size, col)
-        paste(canvas, g, pen - PAD + g.img.width / 2 + ox,
-              y - asc - PAD + g.img.height / 2 + dy + oy, 1.0, a, 0.0)
-        pen += g.adv + space
-
-
-# ---------------------------------------------------------------- frame
-
-
 def render_frame(t):
     ox, oy = shake(t)
-    oy += breathe(t)
+    oy += math.sin(t * 0.55) * 4.0
 
     canvas = Image.frombuffer("RGB", (W, H), BG.tobytes(), "raw", "RGB", 0, 1).convert("RGBA")
 
-    draw_soft_block(canvas, S1, t, ox, oy)
-    draw_drop_block(canvas, S2, t, ox, oy)
-    draw_soft_block(canvas, S3, t, ox, oy)
-    draw_drop_block(canvas, S4, t, ox, oy)
-    draw_fast_block(canvas, S5, t, ox, oy)
-    draw_zenvy(canvas, t, ox, oy)
+    for seg in TM.SEGMENTS:
+        draw_segment(canvas, seg, t, ox, oy)
+    draw_brand(canvas, t, ox, oy)
     draw_final(canvas, t, ox, oy)
 
     frame = np.asarray(canvas.convert("RGB"), dtype=np.float32)
 
-    # halo accent derriere le logo
-    if t >= ZEN_IN - 0.05:
-        _, _, _, glow = zenvy_state(t)
+    if t >= TM.ZEN_IN - 0.05:
+        glow = brand_state(t)[2]
         if glow > 0.01:
-            frame += GLOW[..., None] * ACCENT_F[None, None, :] * (0.30 * glow)
+            frame += GLOW[..., None] * ACCENT_F[None, None, :] * (0.15 * glow)
 
-    # flash court sur l'impact "Zenvy"
-    fu = t - ZEN_IN
-    if -0.02 <= fu < 0.30:
-        f = 0.62 * math.exp(-max(fu, 0.0) / 0.045)
-        if fu < 0:
-            f = 0.0
-        frame += (255.0 - frame) * min(f, 0.92)
+    fu = t - TM.ZEN_IN
+    if 0 <= fu < 0.30:
+        frame += (255.0 - frame) * min(0.62 * math.exp(-fu / 0.045), 0.92)
 
     frame = frame + GRAIN[int(t * FPS) % len(GRAIN)][..., None]
     return np.clip(frame, 0, 255).astype(np.uint8)
