@@ -33,7 +33,7 @@ Format prêt pour Instagram Reels et TikTok.
 | 4 | 7 → 9 s | …mais on sait pas où aller. | Reprise exacte de la retombée de la séquence 2 |
 | 5 | 9 → 12 s | Et si on savait tout, **tout de suite ?** | Stagger 0,06 s, Y +40 px → 0, scale 80 % → 105 % → 100 % (easeOutBack), flou directionnel vertical proportionnel à la vitesse ; « tout de suite ? » en orange |
 | 6 | 12 → 14 s | **Zenvy** | Coupe nette. Scale 50 % → 130 % en 0,4 s (easeOutExpo) puis rebond retour à 100 %, dégradé violet → orange sur les lettres, **flash blanc plein écran** (0 → 60 % → 0 en 0,2 s) calé sur le pic à t = 12,40 s, puis pulse continu 100 % ↔ 103 % |
-| 7 | 14 → 15 s | logo Zenvy + Bordeaux, **20 août.** | Plan final fixe : le logo apparaît en fondu avec un léger scale 86 % → 100 %, le texte suit 0,12 s plus tard ; « 20 août. » en orange |
+| 7 | 14 → 15 s | logo Zenvy + Lancement le **20 août** à Bordeaux | Plan final fixe : le logo apparaît en fondu avec un léger scale 86 % → 100 %, le texte suit 0,12 s plus tard ; « 20 août » en orange |
 
 **Transitions** : *whip* de 0,18 s entre chaque bloc — le texte sortant est
 chassé hors champ en translation + rotation + zoom avec flou directionnel
