@@ -83,9 +83,9 @@
   /* Logo Zenvy du plan final */
   .logo {
     display: block;
-    width: 420px;
-    height: 420px;
-    margin-bottom: 44px;
+    width: 340px;
+    height: 340px;
+    margin-bottom: 38px;
     opacity: 0;
     will-change: transform, opacity;
   }
@@ -145,8 +145,8 @@
      - couche « texte »   : animation mot par mot propre à chaque séquence.
    ========================================================================= */
 
-const TARGET_W  = 790;     // largeur visée par ligne (bloc justifié)
-const MAX_H     = 980;     // hauteur max du bloc de texte
+const TARGET_W  = 630;     // largeur visée par ligne (le bloc ne remplit pas le cadre)
+const MAX_H     = 760;     // hauteur max du bloc de texte
 const LH        = 0.96;    // interligne effectif (marge incluse) pour le calcul de hauteur
 const XF        = 0.18;    // durée d'une transition whip (s)
 
@@ -166,7 +166,7 @@ const lerp = (a, b, x) => a + (b - a) * x;
 /* ---------- script ---------- */
 const SEQS = [
   {
-    id: 's1', start: 0, end: 3, type: 'reveal', dir: 1, maxSize: 200,
+    id: 's1', start: 0, end: 3, type: 'reveal', dir: 1, maxSize: 158,
     lines: [
       [{t: 'On'}, {t: 'a'}, {t: 'tous'}],
       [{t: 'ce'}, {t: 'moment'}],
@@ -175,7 +175,7 @@ const SEQS = [
     ]
   },
   {
-    id: 's2', start: 3, end: 5, type: 'fall', dir: -1, maxSize: 205,
+    id: 's2', start: 3, end: 5, type: 'fall', dir: -1, maxSize: 162,
     lines: [
       [{t: '…mais'}],
       [{t: 'personne'}],
@@ -183,14 +183,14 @@ const SEQS = [
     ]
   },
   {
-    id: 's3', start: 5, end: 7, type: 'reveal', dir: 1, maxSize: 230,
+    id: 's3', start: 5, end: 7, type: 'reveal', dir: 1, maxSize: 182,
     lines: [
       [{t: 'Ou'}, {t: 'on'}, {t: 'est'}],
       [{t: 'dispo…'}]
     ]
   },
   {
-    id: 's4', start: 7, end: 9, type: 'fall', dir: -1, maxSize: 200,
+    id: 's4', start: 7, end: 9, type: 'fall', dir: -1, maxSize: 158,
     lines: [
       [{t: '…mais'}, {t: 'on'}],
       [{t: 'sait'}, {t: 'pas'}],
@@ -198,7 +198,7 @@ const SEQS = [
     ]
   },
   {
-    id: 's5', start: 9, end: 12, type: 'punch', dir: 1, maxSize: 215,
+    id: 's5', start: 9, end: 12, type: 'punch', dir: 1, maxSize: 170,
     lines: [
       [{t: 'Et'}, {t: 'si'}, {t: 'on'}],
       [{t: 'savait'}, {t: 'tout,'}],
@@ -207,13 +207,13 @@ const SEQS = [
   },
   {
     // coupe nette + scale 130 % : la largeur cible est réduite pour rester dans le cadre
-    id: 's6', start: 12, end: 14, type: 'hero', hardIn: true, fitW: 660, maxSize: 300,
+    id: 's6', start: 12, end: 14, type: 'hero', hardIn: true, fitW: 540, maxSize: 240,
     lines: [
       [{t: 'Zenvy', id: 'zenvyWord'}]
     ]
   },
   {
-    id: 's7', start: 14, end: 15, type: 'static', dir: 1, maxSize: 160, logo: true,
+    id: 's7', start: 14, end: 15, type: 'static', dir: 1, maxSize: 126, logo: true,
     lines: [
       [{t: 'Lancement'}, {t: 'le'}],
       [{t: '20', c: 'orange'}, {t: 'août', c: 'orange'}],

@@ -19,7 +19,7 @@ Format prêt pour Instagram Reels et TikTok.
 | Accent orange Zenvy | `#FF8A1E` |
 | Accent violet Zenvy | `#8B31F4` |
 | Dégradé de marque | violet → orange en diagonale (105°), réservé au mot « Zenvy » |
-| Échelle | lignes calées sur 790 px de large (bloc plus compact que le plein cadre) |
+| Échelle | lignes calées sur 630 px de large, bloc limité à 760 px de haut : le texte ne touche jamais les bords |
 | Zone sûre | bloc centré, remonté de ~55 px pour rester au-dessus de l'UI Reels/TikTok |
 | Logo | icône Zenvy détourée sur fond noir, plan final |
 
