@@ -1,0 +1,4 @@
+out/preview/
+out/check/
+out/*.wav
+node_modules/

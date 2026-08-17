@@ -1,1 +1,74 @@
-# iPad-
+# Zenvy — pub kinetic typography (20 s, 9:16)
+
+Vidéo publicitaire en typographie animée, générée entièrement par code
+(aucun projet After Effects, aucun rush vidéo) : la scène est décrite en
+HTML/CSS/JS, rendue image par image dans Chromium, la bande son est
+synthétisée en Python, le tout encodé en H.264 avec ffmpeg.
+
+**Livrable : [`out/zenvy-kinetic-20s.mp4`](out/zenvy-kinetic-20s.mp4)**
+— 1080 × 1920 (9:16), 60 fps, 20,0 s, H.264 + AAC 48 kHz stéréo.
+Format prêt pour Instagram Reels et TikTok.
+
+## Direction artistique
+
+| Élément | Choix |
+|---|---|
+| Fond | noir pur `#000000`, uni, sans texture ni vignette |
+| Typo | **Inter** (Bold / ExtraBold), sans-serif contemporaine, capitales, interlettrage resserré (-0,025 em) |
+| Couleur principale | blanc pur `#FFFFFF` |
+| Accent orange Zenvy | `#FF8A1E` |
+| Accent violet Zenvy | `#8B31F4` |
+| Dégradé de marque | violet → orange en diagonale (105°), réservé au mot « Zenvy » |
+| Zone sûre | bloc de texte centré, remonté de ~60 px pour rester au-dessus de l'UI Reels/TikTok |
+
+## Découpage et animations
+
+| Séquence | Temps | Texte | Animation |
+|---|---|---|---|
+| 1 | 0 → 4 s | On a tous ce moment où on veut sortir… | Révélation mot par mot : opacité 0→100 % en 0,3 s, Y +20 px → 0, scale 95 % → 100 %, ease-out sans overshoot, stagger 0,15 s |
+| 2 | 4 → 7 s | …mais personne n'est dispo. | Entrée mot par mot avec rotation −2° → 0°, puis **retombée** : Y 0 → +15 px en ease-in et assombrissement 100 % → 85 % |
+| 3 | 7 → 10 s | Ou on est dispo… | Reprise exacte de l'entrée de la séquence 1 |
+| 4 | 10 → 13 s | …mais on sait pas où aller. | Reprise exacte de la retombée de la séquence 2 |
+| 5 | 13 → 16 s | Et si on savait tout, **tout de suite ?** | Stagger réduit à 0,08 s, Y +40 px → 0, scale 80 % → 105 % → 100 % (easeOutBack), flou directionnel vertical proportionnel à la vitesse ; « tout de suite ? » en orange |
+| 6 | 16 → 19 s | **Zenvy** | Coupe nette. Scale 50 % → 130 % en 0,4 s (easeOutExpo) puis rebond retour à 100 %, dégradé violet → orange sur les lettres, **flash blanc plein écran** (0 → 60 % → 0 en 0,2 s) calé sur le pic à t = 16,40 s, puis pulse continu 100 % ↔ 103 % |
+| 7 | 19 → 20 s | Bordeaux, **20 août.** | Fade-in simple 0 → 100 % en 0,3 s, sans mouvement ni scale ; « 20 août. » en orange |
+
+**Transitions** : cross-fade de 0,2 s entre chaque bloc, sauf entre les
+séquences 5 et 6 où une coupe nette, renforcée par le flash, marque la rupture.
+
+## Bande son (`src/audio.py`)
+
+Aucune voix off, aucune parole. Nappe électronique minimaliste synthétisée
+(additive, 7 harmoniques, timbre qui s'ouvre avec l'intensité), progression
+Am → F → G → Am ouvert. Le pouls sub passe de 1 battement/s à 2 puis 4 à
+partir de la séquence 5 (accélération), un riser filtré monte de 13,9 s à
+16,4 s, et un whoosh + pop + impact sub tombent exactement sur le flash
+lumineux (t = 16,40 s). Fondu de sortie sur la dernière demi-seconde.
+
+## Reproduire le rendu
+
+```bash
+./src/build.sh                  # audio + rendu + encodage
+FPS=30 OUT=out/test.mp4 ./src/build.sh
+```
+
+Dépendances : Node ≥ 18 avec `playwright` (Chromium), Python 3 avec `numpy`,
+et un ffmpeg compilé avec libx264/aac (`pip install imageio-ffmpeg` suffit,
+ou définir `FFMPEG_BIN`).
+
+### Fichiers
+
+```
+src/scene.html   scène 1080x1920 ; window.renderFrame(t) = état exact à l'instant t
+src/render.js    Chromium -> 1200 images PNG -> pipe ffmpeg -> MP4
+src/audio.py     synthèse de la piste sonore (WAV 48 kHz stéréo)
+src/preview.js   export d'images clés en PNG pour contrôle visuel
+src/build.sh     enchaînement complet
+assets/fonts/    Inter Bold / ExtraBold (SIL Open Font License)
+out/             livrables générés
+```
+
+L'animation ne dépend d'aucune horloge : `renderFrame(t)` est une fonction
+pure du temps, donc le rendu est déterministe et le montage se retouche en
+modifiant le tableau `SEQS` de `src/scene.html` (textes, minutage, tailles,
+couleurs) sans toucher au moteur d'animation.

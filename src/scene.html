@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Zenvy — Kinetic Typography</title>
+<style>
+  @font-face {
+    font-family: 'InterKT';
+    src: url('../assets/fonts/Inter-Bold.ttf') format('truetype');
+    font-weight: 700;
+    font-style: normal;
+  }
+  @font-face {
+    font-family: 'InterKT';
+    src: url('../assets/fonts/Inter-ExtraBold.ttf') format('truetype');
+    font-weight: 800;
+    font-style: normal;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    width: 1080px;
+    height: 1920px;
+    background: #000;
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: geometricPrecision;
+  }
+
+  #stage {
+    position: relative;
+    width: 1080px;
+    height: 1920px;
+    background: #000;
+    overflow: hidden;
+  }
+
+  .seq {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0 80px 120px;   /* remonte légèrement le bloc : zone sûre Reels/TikTok */
+    opacity: 0;
+    will-change: opacity, transform;
+  }
+
+  .line {
+    display: block;
+    white-space: nowrap;
+    text-align: center;
+    line-height: 1.06;
+  }
+
+  .seq {
+    font-family: 'InterKT', 'Helvetica Neue', Arial, sans-serif;
+    font-weight: 800;
+    letter-spacing: -0.025em;
+    color: #FFFFFF;
+    text-transform: uppercase;
+  }
+
+  .w {
+    display: inline-block;
+    margin: 0 0.13em;
+    will-change: transform, opacity, filter;
+    transform-origin: 50% 60%;
+  }
+
+  .orange { color: #FF8A1E; }
+  .purple { color: #8B31F4; }
+
+  /* Hero word : dégradé violet -> orange en diagonale */
+  #zenvyWord {
+    background-image: linear-gradient(105deg, #8B31F4 8%, #A93BD8 38%, #F2601F 72%, #FF9A1E 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    letter-spacing: -0.035em;
+  }
+
+  #flash {
+    position: absolute;
+    inset: 0;
+    background: #FFFFFF;
+    opacity: 0;
+    pointer-events: none;
+    will-change: opacity;
+  }
+
+  svg.filters { position: absolute; width: 0; height: 0; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <!-- Les séquences sont injectées ici -->
+  <div id="flash"></div>
+</div>
+
+<svg class="filters" aria-hidden="true">
+  <defs>
+    <filter id="mb1" x="-20%" y="-60%" width="140%" height="220%">
+      <feGaussianBlur stdDeviation="0 2"/>
+    </filter>
+    <filter id="mb2" x="-20%" y="-60%" width="140%" height="220%">
+      <feGaussianBlur stdDeviation="0 4"/>
+    </filter>
+    <filter id="mb3" x="-20%" y="-60%" width="140%" height="220%">
+      <feGaussianBlur stdDeviation="0 7"/>
+    </filter>
+    <filter id="mb4" x="-20%" y="-60%" width="140%" height="220%">
+      <feGaussianBlur stdDeviation="0 11"/>
+    </filter>
+    <filter id="mb5" x="-20%" y="-60%" width="140%" height="220%">
+      <feGaussianBlur stdDeviation="0 16"/>
+    </filter>
+  </defs>
+</svg>
+
+<script>
+/* =========================================================================
+   ZENVY — Kinetic typography, 20 s, 1080x1920.
+   Toute l'animation est une fonction pure du temps : window.renderFrame(t).
+   Aucune animation CSS / requestAnimationFrame -> rendu image par image
+   parfaitement déterministe.
+   ========================================================================= */
+
+const STAGE_W = 1080;
+const MAX_LINE_W = 920;          // largeur utile (marges 80px)
+const XF = 0.20;                 // cross-fade entre séquences (s)
+
+/* ---------- easings ---------- */
+const clamp01 = x => x < 0 ? 0 : (x > 1 ? 1 : x);
+const easeOutCubic = x => 1 - Math.pow(1 - x, 3);
+const easeInCubic  = x => x * x * x;
+const easeInOutSine = x => -(Math.cos(Math.PI * x) - 1) / 2;
+const easeOutExpo  = x => x >= 1 ? 1 : 1 - Math.pow(2, -10 * x);
+function easeOutBack(x) {
+  const c1 = 1.70158, c3 = c1 + 1;
+  return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2);
+}
+const lerp = (a, b, x) => a + (b - a) * x;
+
+/* ---------- script de la vidéo ---------- */
+const SEQS = [
+  {
+    id: 's1', start: 0, end: 4, type: 'reveal', size: 150,
+    lines: [
+      [{t: 'On'}, {t: 'a'}, {t: 'tous'}],
+      [{t: 'ce'}, {t: 'moment'}],
+      [{t: 'où'}, {t: 'on'}, {t: 'veut'}],
+      [{t: 'sortir…'}]
+    ]
+  },
+  {
+    id: 's2', start: 4, end: 7, type: 'fall', size: 150,
+    lines: [
+      [{t: '…mais'}, {t: 'personne'}],
+      [{t: 'n’est'}, {t: 'dispo.'}]
+    ]
+  },
+  {
+    id: 's3', start: 7, end: 10, type: 'reveal', size: 168, stagger: 0.15,
+    lines: [
+      [{t: 'Ou'}, {t: 'on'}, {t: 'est'}],
+      [{t: 'dispo…'}]
+    ]
+  },
+  {
+    id: 's4', start: 10, end: 13, type: 'fall', size: 148,
+    lines: [
+      [{t: '…mais'}, {t: 'on'}, {t: 'sait'}, {t: 'pas'}],
+      [{t: 'où'}, {t: 'aller.'}]
+    ]
+  },
+  {
+    id: 's5', start: 13, end: 16, type: 'punch', size: 158,
+    lines: [
+      [{t: 'Et'}, {t: 'si'}, {t: 'on'}, {t: 'savait'}],
+      [{t: 'tout,'}],
+      [{t: 'tout', c: 'orange'}, {t: 'de', c: 'orange'}, {t: 'suite ?', c: 'orange'}]
+    ]
+  },
+  {
+    // fitW réduit : le mot monte jusqu'à 130% de son échelle, il doit rester dans le cadre
+    id: 's6', start: 16, end: 19, type: 'hero', size: 330, hardIn: true, fitW: 790,
+    lines: [
+      [{t: 'Zenvy', id: 'zenvyWord'}]
+    ]
+  },
+  {
+    id: 's7', start: 19, end: 20, type: 'static', size: 138,
+    lines: [
+      [{t: 'Bordeaux,'}],
+      [{t: '20', c: 'orange'}, {t: 'août.', c: 'orange'}]
+    ]
+  }
+];
+
+/* ---------- construction du DOM ---------- */
+const stage = document.getElementById('stage');
+const flash = document.getElementById('flash');
+
+for (const seq of SEQS) {
+  const el = document.createElement('div');
+  el.className = 'seq';
+  el.id = seq.id;
+  el.style.fontSize = seq.size + 'px';
+
+  seq.words = [];
+  for (const line of seq.lines) {
+    const lineEl = document.createElement('div');
+    lineEl.className = 'line';
+    for (const w of line) {
+      const span = document.createElement('span');
+      span.className = 'w' + (w.c ? ' ' + w.c : '');
+      if (w.id) span.id = w.id;
+      span.textContent = w.t;
+      lineEl.appendChild(span);
+      seq.words.push(span);
+    }
+    el.appendChild(lineEl);
+  }
+  stage.insertBefore(el, flash);
+  seq.el = el;
+}
+
+/* Auto-fit : réduit la taille de police si une ligne dépasse la zone utile. */
+function autofit() {
+  for (const seq of SEQS) {
+    const limit = seq.fitW || MAX_LINE_W;
+    let maxW = 0;
+    for (const lineEl of seq.el.querySelectorAll('.line')) {
+      maxW = Math.max(maxW, lineEl.getBoundingClientRect().width);
+    }
+    if (maxW > limit) {
+      seq.size = Math.floor(seq.size * (limit / maxW));
+      seq.el.style.fontSize = seq.size + 'px';
+    }
+  }
+}
+
+/* ---------- helpers d'animation ---------- */
+function motionBlurFilter(px) {
+  if (px < 1.5) return 'none';
+  if (px < 4)   return 'url(#mb1)';
+  if (px < 8)   return 'url(#mb2)';
+  if (px < 14)  return 'url(#mb3)';
+  if (px < 22)  return 'url(#mb4)';
+  return 'url(#mb5)';
+}
+
+/* Opacité de séquence : cross-fade 0.2 s, sauf coupe nette (hardIn/hardOut). */
+function seqAlpha(seq, t, idx) {
+  const nextHard = SEQS[idx + 1] && SEQS[idx + 1].hardIn;
+  if (t < seq.start - (seq.hardIn ? 0 : XF * 0.5)) return 0;
+  if (t > seq.end + XF) return 0;
+
+  let a = 1;
+  if (seq.hardIn) {
+    a *= t >= seq.start ? 1 : 0;
+  } else {
+    a *= clamp01((t - (seq.start - XF * 0.5)) / XF);
+  }
+  if (nextHard) {
+    a *= t < seq.end ? 1 : 0;                       // coupe nette (séq. 5 -> 6)
+  } else {
+    a *= clamp01(((seq.end + XF * 0.5) - t) / XF);
+  }
+  return clamp01(a);
+}
+
+/* Entrée mot par mot : opacité 0->1, Y +off->0, scale s0->1. */
+function wordReveal(local, i, opt) {
+  const dur     = opt.dur     !== undefined ? opt.dur     : 0.30;
+  const stagger = opt.stagger !== undefined ? opt.stagger : 0.15;
+  const yOff    = opt.y       !== undefined ? opt.y       : 20;
+  const s0      = opt.s0      !== undefined ? opt.s0      : 0.95;
+  const p = clamp01((local - i * stagger) / dur);
+  const e = opt.back ? easeOutBack(p) : easeOutCubic(p);
+
+  let scale;
+  if (opt.back) {
+    // 80% -> 105% -> 100% (easeOutBack produit l'overshoot puis la stabilisation)
+    scale = lerp(s0, 1, e);
+  } else {
+    scale = lerp(s0, 1, e);
+  }
+  const y = lerp(yOff, 0, e);
+  const opacity = clamp01(p / 0.85);
+
+  // vitesse verticale approximée -> flou directionnel
+  let blurPx = 0;
+  if (opt.blur && p > 0 && p < 1) {
+    const dp = 1 / 60 / dur;
+    const e2 = opt.back ? easeOutBack(clamp01(p + dp)) : easeOutCubic(clamp01(p + dp));
+    blurPx = Math.abs((lerp(yOff, 0, e2) - y)) * 0.85;
+  }
+  return { y, scale, opacity, blurPx };
+}
+
+/* ---------- rendu d'une image ---------- */
+function renderFrame(t) {
+  SEQS.forEach((seq, idx) => {
+    const a = seqAlpha(seq, t, idx);
+    const el = seq.el;
+
+    if (a <= 0.0005) {
+      el.style.opacity = '0';
+      return;
+    }
+
+    const local = t - seq.start;
+    let seqTransform = '';
+    let seqOpacity = a;
+
+    if (seq.type === 'reveal') {
+      seq.words.forEach((w, i) => {
+        const r = wordReveal(local, i, { dur: 0.30, stagger: seq.stagger || 0.15, y: 20, s0: 0.95 });
+        w.style.opacity = r.opacity;
+        w.style.transform = `translate3d(0, ${r.y.toFixed(2)}px, 0) scale(${r.scale.toFixed(4)})`;
+        w.style.filter = 'none';
+      });
+    }
+
+    else if (seq.type === 'fall') {
+      // 1. entrée mot par mot (avec rotation -2° -> 0°)
+      const stg = 0.12;
+      seq.words.forEach((w, i) => {
+        const r = wordReveal(local, i, { dur: 0.28, stagger: stg, y: 18, s0: 0.96 });
+        w.style.opacity = r.opacity;
+        w.style.transform = `translate3d(0, ${r.y.toFixed(2)}px, 0) scale(${r.scale.toFixed(4)})`;
+        w.style.filter = 'none';
+      });
+      const settled = (seq.words.length - 1) * stg + 0.28;
+      const rotP = clamp01(local / (settled + 0.15));
+      const rot = lerp(-2, 0, easeOutCubic(rotP));
+
+      // 2. retombée : Y 0 -> +15px (ease-in) + assombrissement 100% -> 85%
+      const fallStart = settled + 0.25;
+      const fp = clamp01((local - fallStart) / 1.0);
+      const fy = lerp(0, 15, easeInCubic(fp));
+      const dim = lerp(1, 0.85, easeInCubic(fp));
+
+      seqTransform = `translate3d(0, ${fy.toFixed(2)}px, 0) rotate(${rot.toFixed(3)}deg)`;
+      seqOpacity = a * dim;
+    }
+
+    else if (seq.type === 'punch') {
+      seq.words.forEach((w, i) => {
+        const r = wordReveal(local, i, {
+          dur: 0.34, stagger: 0.08, y: 40, s0: 0.80, back: true, blur: true
+        });
+        w.style.opacity = r.opacity;
+        w.style.transform = `translate3d(0, ${r.y.toFixed(2)}px, 0) scale(${r.scale.toFixed(4)})`;
+        w.style.filter = motionBlurFilter(r.blurPx);
+      });
+    }
+
+    else if (seq.type === 'hero') {
+      const w = seq.words[0];
+      let scale;
+      const upDur = 0.40, backDur = 0.34;
+      if (local < upDur) {
+        scale = lerp(0.5, 1.3, easeOutExpo(local / upDur));            // 50% -> 130%
+      } else if (local < upDur + backDur) {
+        const p = (local - upDur) / backDur;                            // rebond -> 100%
+        scale = lerp(1.3, 1.0, easeOutCubic(p)) + Math.sin(p * Math.PI) * -0.035;
+      } else {
+        const p = local - (upDur + backDur);                            // pulse continu
+        scale = 1.0 + 0.015 - 0.015 * Math.cos(p * (2 * Math.PI) / 1.6);
+      }
+      w.style.opacity = 1;
+      w.style.transform = `scale(${scale.toFixed(4)})`;
+      w.style.filter = 'none';
+    }
+
+    else if (seq.type === 'static') {
+      seq.words.forEach(w => {
+        w.style.opacity = clamp01(local / 0.30);
+        w.style.transform = 'none';
+        w.style.filter = 'none';
+      });
+    }
+
+    el.style.opacity = seqOpacity.toFixed(4);
+    el.style.transform = seqTransform || 'none';
+  });
+
+  /* Flash plein écran synchronisé sur le pic de scale de "Zenvy" (t = 16.40) */
+  const fPeak = 16.40, fUp = 0.08, fDown = 0.12;
+  let fo = 0;
+  if (t >= fPeak - fUp && t <= fPeak + fDown) {
+    fo = t < fPeak
+      ? 0.60 * ((t - (fPeak - fUp)) / fUp)
+      : 0.60 * (1 - (t - fPeak) / fDown);
+  }
+  flash.style.opacity = clamp01(fo).toFixed(4);
+}
+
+window.renderFrame = renderFrame;
+window.autofit = autofit;
+window.SCENE_DURATION = 20;
+
+document.fonts.ready.then(() => {
+  autofit();
+  renderFrame(0);
+  window.__ready = true;
+});
+</script>
+</body>
+</html>
