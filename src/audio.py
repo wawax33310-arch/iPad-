@@ -1,15 +1,14 @@
 #!/usr/bin/env python3
 """
-Bande son de la pub Zenvy (20 s) — synthèse pure, aucun sample externe.
+Bande son de la pub Zenvy (15 s) — synthèse pure, aucun sample externe.
 
 Prod électronique rythmée, sans voix ni paroles, calée sur le montage :
   120 BPM (1 mesure = 2 s), donc chaque séquence tombe pile sur une mesure.
 
-  mes. 1-2 (0-4 s)   intro     kick 1 & 3, hat 8e, nappe filtrée
-  mes. 3-4 (4-8 s)   groove    kick 4/4, basse contretemps, clap sur 2 et 4
-  mes. 5-6 (8-12 s)  montée    basse en croches, hats en doubles, stabs
-  mes. 7-8 (12-16 s) build     roulement qui accélère, riser, coupe avant le drop
-  mes. 9-10 (16-20 s) drop     impact, kick + basse pleine, stabs larges, sortie
+  mes. 1-2 (0-4 s)   intro     kick 1 & 3 puis 4/4, hats, nappe filtrée
+  mes. 3-4 (4-8 s)   groove    basse en croches, clap sur 2 et 4, stabs
+  mes. 5-6 (8-12 s)  build     roulement qui accélère, riser, coupe avant le drop
+  mes. 7-8 (12-15 s) drop      impact, kick + basse pleine, stabs larges, sortie
 
 Sortie : out/zenvy-audio.wav (48 kHz, stéréo, 16 bits)
 """
@@ -19,15 +18,15 @@ import wave
 import numpy as np
 
 SR = 48000
-DUR = 20.0
+DUR = 15.0
 N = int(SR * DUR)
 T = np.arange(N) / SR
 
 BPM = 120.0
 BEAT = 60.0 / BPM          # 0.5 s
 BAR = 4 * BEAT             # 2 s
-DROP = 16.0                # coupe nette séquence 5 -> 6
-FLASH = 16.40              # pic du flash lumineux
+DROP = 12.0                # coupe nette séquence 5 -> 6
+FLASH = 12.40              # pic du flash lumineux
 
 OUT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                    "out", "zenvy-audio.wav")
@@ -160,9 +159,8 @@ NOTE = {'A1': 55.00, 'C2': 65.41, 'E2': 82.41, 'F1': 43.65, 'G1': 49.00,
 SECTIONS = [                     # (début, fin, basse, accord)
     (0.0,  4.0, NOTE['A1'], [NOTE['A3'], NOTE['C4'], NOTE['E4']]),
     (4.0,  8.0, NOTE['F1'], [NOTE['A3'], NOTE['C4'], NOTE['F3']]),
-    (8.0, 12.0, NOTE['C2'], [NOTE['C4'], NOTE['E4'], NOTE['G3']]),
-    (12.0, 16.0, NOTE['G1'], [NOTE['B3'], NOTE['D4'], NOTE['G3']]),
-    (16.0, 20.0, NOTE['A1'], [NOTE['A3'], NOTE['C4'], NOTE['E4'], NOTE['A4']]),
+    (8.0, 12.0, NOTE['G1'], [NOTE['B3'], NOTE['D4'], NOTE['G3']]),
+    (12.0, 15.0, NOTE['A1'], [NOTE['A3'], NOTE['C4'], NOTE['E4'], NOTE['A4']]),
 ]
 
 
@@ -176,8 +174,8 @@ def section_at(t):
 # --------------------------------------------------------------------------
 # nappe de fond (elle tient l'harmonie sous le rythme)
 # --------------------------------------------------------------------------
-intensity = np.interp(T, [0, 4, 8, 12, 15.5, 16.0, 19.0, 20.0],
-                         [0.25, 0.35, 0.5, 0.62, 0.95, 1.0, 0.8, 0.5])
+intensity = np.interp(T, [0, 4, 8, 11.5, 12.0, 14.0, 15.0],
+                         [0.25, 0.4, 0.6, 0.95, 1.0, 0.85, 0.5])
 
 for (s0, s1, bass, chord) in SECTIONS:
     i0, i1 = int(s0 * SR), int(s1 * SR)
@@ -203,17 +201,19 @@ def bar_time(bar_idx, beat=0.0):
 
 
 # --- kick -----------------------------------------------------------------
-for bar in range(10):
+GAP0, GAP1 = 11.5, DROP                     # respiration avant le drop
+
+for bar in range(8):
     for b in range(4):
         t0 = bar_time(bar, b)
-        if t0 >= 15.5 and t0 < DROP:            # respiration avant le drop
+        if GAP0 <= t0 < GAP1:
             continue
-        if bar < 2:                             # intro : temps 1 et 3
+        if bar < 1:                             # intro : temps 1 et 3
             if b % 2 == 0:
                 add(kick(decay=0.30), t0, gain=0.72)
-        elif bar < 6:
+        elif bar < 4:
             add(kick(), t0, gain=0.88)
-        elif bar < 8:
+        elif bar < 6:                           # build
             add(kick(), t0, gain=0.92)
             if b == 3:
                 add(kick(decay=0.22), t0 + BEAT / 2, gain=0.7)
@@ -223,19 +223,19 @@ for bar in range(10):
                 add(kick(decay=0.20), t0 + BEAT * 0.75, gain=0.6)
 
 # --- basse ----------------------------------------------------------------
-for bar in range(10):
+for bar in range(8):
     s = section_at(bar_time(bar))
     root = s[2]
-    if bar < 2:
+    if bar < 1:
         add(sub(root, BEAT * 1.5, decay=0.5), bar_time(bar, 0), gain=0.5)
-    elif bar < 4:                               # contretemps
+    elif bar < 2:                               # contretemps
         for b in range(4):
             add(sub(root, BEAT * 0.45, decay=0.16, shape=0.4),
                 bar_time(bar, b) + BEAT / 2, gain=0.55)
-    elif bar < 8:                               # croches, avec quinte de passage
+    elif bar < 6:                               # croches, avec quinte de passage
         for k in range(8):
             t0 = bar_time(bar) + k * BEAT / 2
-            if t0 >= 15.5:
+            if GAP0 <= t0 < GAP1:
                 continue
             f = root * (1.5 if k in (5, 7) else 1.0)
             add(sub(f, BEAT * 0.42, decay=0.15, shape=0.5), t0, gain=0.52)
@@ -246,40 +246,40 @@ for bar in range(10):
             add(sub(f, BEAT * 0.46, decay=0.20, shape=0.6), t0, gain=0.62)
 
 # --- clap / snare ---------------------------------------------------------
-for bar in range(10):
+for bar in range(8):
     for b in (1, 3):
         t0 = bar_time(bar, b)
-        if t0 >= 15.5 and t0 < DROP:
+        if GAP0 <= t0 < GAP1:
             continue
-        if bar >= 2:
-            add(clap(), t0, gain=0.75 if bar < 8 else 0.95)
+        if bar >= 1:
+            add(clap(), t0, gain=0.75 if bar < 6 else 0.95)
 
 # --- hats -----------------------------------------------------------------
-for bar in range(10):
-    if bar < 2:
+for bar in range(8):
+    if bar < 1:
         steps, lvl = 8, 0.35
-    elif bar < 4:
+    elif bar < 2:
         steps, lvl = 8, 0.5
-    elif bar < 8:
+    elif bar < 6:
         steps, lvl = 16, 0.45
     else:
         steps, lvl = 16, 0.6
     for k in range(steps):
         t0 = bar_time(bar) + k * BAR / steps
-        if 15.5 <= t0 < DROP:
+        if GAP0 <= t0 < GAP1:
             continue
         accent = 1.0 if (k % (steps // 4) == 0) else 0.55
         add(hat(decay=0.030 if accent > 0.9 else 0.020), t0,
             gain=lvl * accent, pan=0.25 * (1 if k % 2 else -1))
 
 # --- stabs d'accord -------------------------------------------------------
-for bar in range(4, 10):
+for bar in range(2, 8):
     s = section_at(bar_time(bar))
     chord = s[3]
-    if bar < 8:
+    if bar < 6:
         for b in (1, 2.5):
             t0 = bar_time(bar, b)
-            if t0 >= 15.5:
+            if GAP0 <= t0 < GAP1:
                 continue
             add(stab(chord, dur=0.20), t0, gain=0.30, pan=0.1)
     else:                                       # drop : stabs plus larges
@@ -291,22 +291,22 @@ for bar in range(4, 10):
 # --------------------------------------------------------------------------
 # build (mes. 7-8) : roulement qui accélère + riser, puis coupe
 # --------------------------------------------------------------------------
-t_roll = 14.0
+t_roll = 10.0
 step = 0.25
-while t_roll < 15.5:
-    lvl = 0.25 + 0.55 * (t_roll - 14.0) / 1.5
+while t_roll < GAP0:
+    lvl = 0.25 + 0.55 * (t_roll - 10.0) / 1.5
     add(noise_hit(0.05, bright=0.9, seed=int(t_roll * 1000)) * 0.8, t_roll, gain=lvl)
     step = max(0.0625, step * 0.82)             # 8e -> 16e -> 32e
     t_roll += step
 
-riser = sweep_noise(2.6, 300, 6000, bw_oct=1.4, seed=11)
+riser = sweep_noise(2.2, 300, 6000, bw_oct=1.4, seed=11)
 r_env = np.linspace(0, 1, len(riser)) ** 2.4
-add(riser * r_env, 13.8, gain=0.34)
+add(riser * r_env, 9.8, gain=0.34)
 
-n_sw = int(2.6 * SR)
+n_sw = int(2.2 * SR)
 tt = np.linspace(0, 1, n_sw)
 f_sw = 160 * (1600 / 160) ** tt
-add(np.sin(2 * np.pi * np.cumsum(f_sw) / SR) * (tt ** 3), 13.8, gain=0.16)
+add(np.sin(2 * np.pi * np.cumsum(f_sw) / SR) * (tt ** 3), 9.8, gain=0.16)
 
 # petit silence tendu juste avant la coupe : seule la queue du riser reste
 
@@ -348,8 +348,8 @@ wet = np.stack([fft_convolve(mix[:, 0], ir), fft_convolve(mix[:, 1], ir)], axis=
 out = mix + wet * 0.18
 
 # arc d'énergie : chaque bloc de 4 s pousse un peu plus fort que le précédent
-arc = np.interp(T, [0, 4, 8, 12, 15.5, 16.0, 19.0, 20.0],
-                   [0.72, 0.82, 0.90, 0.96, 1.00, 1.06, 1.04, 0.98])
+arc = np.interp(T, [0, 4, 8, 11.5, 12.0, 14.0, 15.0],
+                   [0.72, 0.86, 0.94, 1.00, 1.06, 1.04, 0.98])
 out *= arc[:, None]
 
 # lift d'aigus (dérivée = pente +6 dB/oct) : lisibilité sur haut-parleur de téléphone
@@ -360,7 +360,7 @@ out = out + 0.55 * hf
 # --------------------------------------------------------------------------
 # master
 # --------------------------------------------------------------------------
-master = np.clip(T / 0.12, 0, 1) * np.clip((20.0 - T) / 0.45, 0, 1) ** 0.7
+master = np.clip(T / 0.12, 0, 1) * np.clip((15.0 - T) / 0.45, 0, 1) ** 0.7
 out *= master[:, None]
 
 # compression douce type « colle de bus » + limitation

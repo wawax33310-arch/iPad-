@@ -80,6 +80,16 @@
   .orange { color: #FF8A1E; }
   .purple { color: #8B31F4; }
 
+  /* Logo Zenvy du plan final */
+  .logo {
+    display: block;
+    width: 420px;
+    height: 420px;
+    margin-bottom: 44px;
+    opacity: 0;
+    will-change: transform, opacity;
+  }
+
   /* Mot final : dégradé violet -> orange en diagonale */
   #zenvyWord {
     background-image: linear-gradient(105deg, #8B31F4 6%, #A93BD8 36%, #F2601F 72%, #FF9A1E 100%);
@@ -125,7 +135,7 @@
 
 <script>
 /* =========================================================================
-   ZENVY — kinetic typography, 20 s, 1080x1920, fond noir.
+   ZENVY — kinetic typography, 15 s, 1080x1920, fond noir.
    renderFrame(t) décrit l'état exact de la scène à l'instant t : le rendu
    image par image est donc parfaitement déterministe.
 
@@ -135,10 +145,10 @@
      - couche « texte »   : animation mot par mot propre à chaque séquence.
    ========================================================================= */
 
-const TARGET_W  = 950;     // largeur visée par ligne (bloc justifié)
-const MAX_H     = 1180;    // hauteur max du bloc de texte
+const TARGET_W  = 790;     // largeur visée par ligne (bloc justifié)
+const MAX_H     = 980;     // hauteur max du bloc de texte
 const LH        = 0.96;    // interligne effectif (marge incluse) pour le calcul de hauteur
-const XF        = 0.22;    // durée d'une transition whip (s)
+const XF        = 0.18;    // durée d'une transition whip (s)
 
 /* ---------- easings ---------- */
 const clamp01 = x => x < 0 ? 0 : (x > 1 ? 1 : x);
@@ -156,7 +166,7 @@ const lerp = (a, b, x) => a + (b - a) * x;
 /* ---------- script ---------- */
 const SEQS = [
   {
-    id: 's1', start: 0, end: 4, type: 'reveal', dir: 1, maxSize: 250,
+    id: 's1', start: 0, end: 3, type: 'reveal', dir: 1, maxSize: 200,
     lines: [
       [{t: 'On'}, {t: 'a'}, {t: 'tous'}],
       [{t: 'ce'}, {t: 'moment'}],
@@ -165,7 +175,7 @@ const SEQS = [
     ]
   },
   {
-    id: 's2', start: 4, end: 7, type: 'fall', dir: -1, maxSize: 260,
+    id: 's2', start: 3, end: 5, type: 'fall', dir: -1, maxSize: 205,
     lines: [
       [{t: '…mais'}],
       [{t: 'personne'}],
@@ -173,14 +183,14 @@ const SEQS = [
     ]
   },
   {
-    id: 's3', start: 7, end: 10, type: 'reveal', dir: 1, maxSize: 300,
+    id: 's3', start: 5, end: 7, type: 'reveal', dir: 1, maxSize: 230,
     lines: [
       [{t: 'Ou'}, {t: 'on'}, {t: 'est'}],
       [{t: 'dispo…'}]
     ]
   },
   {
-    id: 's4', start: 10, end: 13, type: 'fall', dir: -1, maxSize: 250,
+    id: 's4', start: 7, end: 9, type: 'fall', dir: -1, maxSize: 200,
     lines: [
       [{t: '…mais'}, {t: 'on'}],
       [{t: 'sait'}, {t: 'pas'}],
@@ -188,7 +198,7 @@ const SEQS = [
     ]
   },
   {
-    id: 's5', start: 13, end: 16, type: 'punch', dir: 1, maxSize: 270,
+    id: 's5', start: 9, end: 12, type: 'punch', dir: 1, maxSize: 215,
     lines: [
       [{t: 'Et'}, {t: 'si'}, {t: 'on'}],
       [{t: 'savait'}, {t: 'tout,'}],
@@ -197,13 +207,13 @@ const SEQS = [
   },
   {
     // coupe nette + scale 130 % : la largeur cible est réduite pour rester dans le cadre
-    id: 's6', start: 16, end: 19, type: 'hero', hardIn: true, fitW: 800, maxSize: 400,
+    id: 's6', start: 12, end: 14, type: 'hero', hardIn: true, fitW: 660, maxSize: 300,
     lines: [
       [{t: 'Zenvy', id: 'zenvyWord'}]
     ]
   },
   {
-    id: 's7', start: 19, end: 20, type: 'static', dir: 1, maxSize: 230,
+    id: 's7', start: 14, end: 15, type: 'static', dir: 1, maxSize: 150, logo: true,
     lines: [
       [{t: 'Bordeaux,'}],
       [{t: '20', c: 'orange'}, {t: 'août.', c: 'orange'}]
@@ -222,6 +232,15 @@ for (const seq of SEQS) {
 
   seq.words = [];
   seq.lineEls = [];
+
+  if (seq.logo) {
+    const img = document.createElement('img');
+    img.className = 'logo';
+    img.src = '../assets/zenvy-logo.png';
+    el.appendChild(img);
+    seq.logoEl = img;
+  }
+
   for (const line of seq.lines) {
     const lineEl = document.createElement('div');
     lineEl.className = 'line';
@@ -303,7 +322,10 @@ function camera(seq, t, idx) {
     blur = (1 - e) * 26;
   }
 
-  if (nextHard) {                                    // coupe nette en sortie
+  const isLast = idx === SEQS.length - 1;
+  if (isLast) {                                      // dernier plan : il tient jusqu'à la fin
+    if (t > seq.end) return null;
+  } else if (nextHard) {                             // coupe nette en sortie
     if (t >= seq.end) return null;
   } else if (localOut < XF) {                        // whip de sortie
     if (localOut < -0.001) return null;
@@ -354,7 +376,7 @@ function renderFrame(t) {
 
     if (seq.type === 'reveal') {
       seq.words.forEach((w, i) => {
-        const r = wordReveal(local, i, { dur: 0.30, stagger: 0.15, y: 20, s0: 0.95 });
+        const r = wordReveal(local, i, { dur: 0.26, stagger: 0.10, y: 20, s0: 0.95 });
         w.style.opacity = r.opacity;
         w.style.transform = `translate3d(0, ${r.y.toFixed(2)}px, 0) scale(${r.scale.toFixed(4)})`;
         w.style.filter = 'none';
@@ -362,23 +384,23 @@ function renderFrame(t) {
     }
 
     else if (seq.type === 'fall') {
-      const stg = 0.12;
+      const stg = 0.09;
       seq.words.forEach((w, i) => {
-        const r = wordReveal(local, i, { dur: 0.28, stagger: stg, y: 18, s0: 0.96 });
+        const r = wordReveal(local, i, { dur: 0.24, stagger: stg, y: 18, s0: 0.96 });
         w.style.opacity = r.opacity;
         w.style.transform = `translate3d(0, ${r.y.toFixed(2)}px, 0) scale(${r.scale.toFixed(4)})`;
         w.style.filter = 'none';
       });
       const settled = (seq.words.length - 1) * stg + 0.28;
       extraRot = lerp(-2, 0, easeOutCubic(clamp01(local / (settled + 0.15))));
-      const fp = clamp01((local - (settled + 0.25)) / 1.0);
+      const fp = clamp01((local - (settled + 0.18)) / 0.75);
       extraY = lerp(0, 15, easeInCubic(fp));          // retombée
       dim = lerp(1, 0.85, easeInCubic(fp));           // assombrissement
     }
 
     else if (seq.type === 'punch') {
       seq.words.forEach((w, i) => {
-        const r = wordReveal(local, i, { dur: 0.34, stagger: 0.08, y: 40, s0: 0.80, back: true, blur: true });
+        const r = wordReveal(local, i, { dur: 0.30, stagger: 0.06, y: 40, s0: 0.80, back: true, blur: true });
         w.style.opacity = r.opacity;
         w.style.transform = `translate3d(0, ${r.y.toFixed(2)}px, 0) scale(${r.scale.toFixed(4)})`;
         w.style.filter = vBlur(r.blurPx);
@@ -404,8 +426,15 @@ function renderFrame(t) {
     }
 
     else if (seq.type === 'static') {
+      // logo : apparition douce avec un léger scale, juste avant le texte
+      if (seq.logoEl) {
+        const lp = clamp01(local / 0.38);
+        const le = easeOutCubic(lp);
+        seq.logoEl.style.opacity = clamp01(lp / 0.8).toFixed(3);
+        seq.logoEl.style.transform = `scale(${lerp(0.86, 1, le).toFixed(4)})`;
+      }
       seq.words.forEach(w => {
-        w.style.opacity = clamp01(local / 0.30);
+        w.style.opacity = clamp01((local - 0.12) / 0.30);
         w.style.transform = 'none';
         w.style.filter = 'none';
       });
@@ -418,8 +447,8 @@ function renderFrame(t) {
     el.style.filter = hBlur(cam.blur);
   });
 
-  /* Flash plein écran calé sur le pic de scale de « Zenvy » (t = 16,40 s) */
-  const fPeak = 16.40, fUp = 0.08, fDown = 0.12;
+  /* Flash plein écran calé sur le pic de scale de « Zenvy » (t = 12,40 s) */
+  const fPeak = 12.40, fUp = 0.08, fDown = 0.12;
   let fo = 0;
   if (t >= fPeak - fUp && t <= fPeak + fDown) {
     fo = t < fPeak
@@ -430,7 +459,7 @@ function renderFrame(t) {
 }
 
 window.renderFrame = renderFrame;
-window.SCENE_DURATION = 20;
+window.SCENE_DURATION = 15;
 
 document.fonts.ready.then(() => {
   fitLines();

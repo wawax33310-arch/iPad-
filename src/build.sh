@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Chaîne de fabrication complète : audio -> images -> MP4 (1080x1920, 60 fps, 20 s)
+# Chaîne de fabrication complète : audio -> images -> MP4 (1080x1920, 60 fps, 15 s)
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
 FPS="${FPS:-60}"
-OUT="${OUT:-out/zenvy-kinetic-20s.mp4}"
+OUT="${OUT:-out/zenvy-kinetic-15s.mp4}"
 
 echo "→ 1/2  synthèse de la bande son"
 python3 src/audio.py

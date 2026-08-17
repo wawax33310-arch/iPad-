@@ -23,7 +23,7 @@ function arg(name, def) {
 const FPS      = parseInt(arg('fps', '60'), 10);
 const WIDTH    = 1080;
 const HEIGHT   = 1920;
-const OUT      = path.resolve(arg('out', 'out/zenvy-kinetic-20s.mp4'));
+const OUT      = path.resolve(arg('out', 'out/zenvy-kinetic-15s.mp4'));
 const AUDIO    = path.resolve(arg('audio', 'out/zenvy-audio.wav'));
 const SCENE    = 'file://' + path.resolve(__dirname, 'scene.html');
 
