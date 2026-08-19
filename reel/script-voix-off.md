@@ -1,160 +1,180 @@
-# REEL — "Ce qui se passe dans ma tête le jour où je sors mon appli"
+# REEL ZENVY — "Ce qui se passe dans ma tête le jour de la sortie"
 
 Format : 9:16 · 45 s · voix off mentale en continu
 Ton : intérieur, nerveux, présent. Presque un murmure. Jamais "voix de pub".
 
 ---
 
-## ⚡ À FAIRE AVANT TOUT (aujourd'hui, une seule chance)
+## ⚡ À FILMER AUJOURD'HUI (non rejouable)
 
-Ces plans ne sont pas rejouables. Filme-les même mal :
+1. **Le doigt qui appuie sur Publier / Soumettre** — 15 s avant, 15 s après, en continu.
+2. **Ton visage dans les 5 secondes qui suivent.** Pas joué.
+3. **Toi qui ouvres Zenvy et te mets dispo** — écran du téléphone, filmé par-dessus l'épaule.
+4. **La carte avec un premier point qui n'est pas toi.**
+5. **Tu fermes l'ordi, tu prends ta veste, tu sors.** (le plan de fin — voir CHUTE)
 
-1. **Le doigt qui appuie sur "Publier" / "Soumettre"** — en continu, 15 s avant, 15 s après.
-2. **La toute première notification de téléchargement** — écran du téléphone.
-3. **Ton visage dans les 5 secondes qui suivent le clic.** Pas joué. Le vrai.
-4. **La page de l'appli en ligne**, scrollée lentement.
-
-Tout le reste (clavier, code, café, plan large du bureau) se retourne ce soir,
-demain, n'importe quand. Ces quatre-là, non.
+Le reste se retourne ce soir. Ces cinq-là, non.
 
 ---
 
-## 1. LE CONCEPT
+## 1. L'ANGLE
 
-À l'image : quelqu'un d'immobile devant un écran.
-Dans la voix off : quatre mois de vie en train de basculer.
+Zenvy sert à faire sortir les gens de chez eux.
+Tu as passé quatre mois enfermé à la coder.
 
-**Tout vient de cet écart.** Règle numéro 1 du montage : si l'image s'agite,
-la voix ralentit. Si la voix panique, l'image se fige. Jamais les deux en même temps.
+**C'est ça, le réel.** L'ironie n'est pas une blague qu'on ajoute, c'est la colonne
+vertébrale : la vidéo commence sur toi seul devant un écran et se termine sur toi
+qui sors. L'appli qui marche, ça veut dire que tu quittes ton bureau.
+
+Et la peur du fondateur = le mode d'échec du produit. *Une appli sociale le jour 1,
+c'est une carte vide.* Tu n'as pas à inventer de tension, elle est dans le produit.
 
 ---
 
 ## 2. SCRIPT TIMECODÉ — 45 s
 
-### ▸ HOOK — 0:00 → 0:04
-**Image :** gros plan sur le doigt suspendu au-dessus de l'écran. Il ne bouge pas.
-**VO :** « Il y a un bouton. Si j'appuie dessus, quatre mois de ma vie deviennent
-publics. J'ai la main dessus depuis onze minutes. »
-**Son :** silence. Rien. Juste une respiration.
-**Texte à l'écran :** `11 minutes`
+### ▸ HOOK — 0:00 → 0:05
+**Image :** gros plan sur le doigt suspendu au-dessus du bouton. Immobile.
+**VO :** « Il y a un bouton.
+Si j'appuie dessus, quatre mois de ma vie deviennent publics.
+J'ai la main dessus depuis onze minutes. »
+**Son :** silence total. Une respiration.
+**Texte :** `11 minutes`
 
-> Pas de logo, pas d'intro, pas de "salut à tous". On démarre au milieu d'une pensée.
+### ▸ L'IRONIE — 0:05 → 0:13
+**Image :** plan large du bureau, rideaux fermés → visage → écran.
+**VO :** « Quatre mois à coder une appli qui sert à sortir de chez soi.
+Quatre mois où je suis pas sorti de chez moi.
+Je vois l'ironie. Merci. »
+**Texte :** `Zenvy` (première et seule apparition du nom en gros)
 
-### ▸ SETUP — 0:04 → 0:12
-**Image :** visage de face → écran → main qui repose sur la souris sans cliquer.
-**VO :** « Je relis la description de l'appli pour la sixième fois.
-Je change un mot. Je le remets.
-Je suis pas en train de relire. Je suis en train de repousser. »
-**Texte à l'écran :** `relecture n°6`
+> C'est ici que le spectateur comprend ce qu'est l'appli, sans qu'on lui explique.
+> Aucune ligne du réel ne doit ressembler à une présentation produit.
 
-### ▸ MONTÉE — 0:12 → 0:26
-**Image :** rafale — mains, écran, tel, tête qui bascule, retour écran. Une coupe toutes les 0,8 s.
+### ▸ MONTÉE — 0:13 → 0:26
+**Image :** rafale. Mains, écran, carte de l'appli, tel, tête qui bascule. Coupe toutes les 0,8 s.
 **VO :** *(débit qui accélère)*
-« Le serveur va tenir ?
-Le serveur va tenir.
-Y a personne dessus, évidemment qu'il va tenir.
-Et s'il y a du monde ?
-S'il y a du monde, le serveur tombe.
-Donc mon meilleur scénario c'est aussi mon pire scénario.
-...Est-ce que j'ai retiré le bouton de test.
-J'ai retiré le bouton de test ?
-J'avais pas retiré le bouton de test. »
-**Texte à l'écran :** les phrases s'empilent puis disparaissent d'un coup.
+« Bon.
+Une appli sociale, le jour 1, c'est quoi.
+C'est une carte vide.
+Il faut des gens pour qu'il y ait des gens.
+J'ai construit une salle et j'espère que quelqu'un rentre.
+...Est-ce que le bouton "je suis dispo" marche, si personne est dispo.
+Techniquement, oui.
+Humainement, c'est pire. »
+**Texte :** les phrases s'empilent puis disparaissent d'un coup.
 
-### ▸ POINT BAS — 0:26 → 0:34
-**Image :** on casse tout. UN SEUL plan, 8 s, sans coupe. La personne recule, regarde ailleurs.
+> « Il faut des gens pour qu'il y ait des gens » est la ligne la plus partageable
+> du réel. Laisse-la respirer : demi-seconde de plus sur ce plan.
+
+### ▸ POINT BAS — 0:26 → 0:35
+**Image :** on casse tout. UN SEUL plan, 9 s, sans coupe. Tu recules, tu regardes ailleurs.
 **VO :** *(beaucoup plus lent)*
-« Et la vraie peur, elle est pas là.
-La vraie peur, c'est que j'appuie...
-et qu'il se passe rien.
-Que le silence soit la réponse. »
-**Son :** la musique s'arrête net. Silence total. Une nappe grave, très basse.
+« Et la vraie peur, elle est pas technique.
+La vraie peur, c'est que j'appuie.
+Que j'ouvre ma propre appli.
+Que je me mette dispo.
+Et que la carte reste vide. »
+**Son :** la musique s'arrête net. Silence. Une nappe grave très basse.
 
-> C'est ce creux qui fait qu'on regarde le réel en entier. Ne le coupe pas au montage
-> en te disant que "ça ralentit". C'est exactement son rôle.
-
-### ▸ REBOND — 0:34 → 0:41
-**Image :** LE VRAI PLAN DU CLIC. Puis l'écran qui confirme. Puis la notification.
+### ▸ REBOND — 0:35 → 0:42
+**Image :** LE VRAI PLAN DU CLIC → l'écran qui confirme → ton téléphone, Zenvy, "dispo".
 **VO :** « J'appuie. »
-*(1 seconde de silence complet)*
-« C'est en ligne. »
+*(1 seconde de silence complet — ne la remplis pas)*
+« C'est en ligne.
+J'ouvre Zenvy. Je me mets dispo.
+Premier utilisateur : moi. »
 *(son de notification)*
-« Un téléchargement.
-...C'est ma mère.
-Deuxième téléchargement.
-C'est pas ma mère. »
-**Son :** la musique revient d'un coup, plus fort qu'avant. Impact sur "C'est en ligne."
-**Texte à l'écran :** `EN LIGNE` plein écran, une seule image.
+« Un point apparaît sur la carte.
+C'est pas moi. »
+**Son :** la musique revient plus fort qu'avant. Impact sur « C'est en ligne. »
+**Texte :** `EN LIGNE` plein écran, une seule image.
 
-### ▸ CHUTE — 0:41 → 0:45
-**Image :** ton visage, le vrai, celui d'après le clic. Coupe au noir sec.
+### ▸ CHUTE — 0:42 → 0:47
+**Image :** tu fermes l'ordi. Tu prends ta veste. La porte. Coupe au noir sec.
 **VO :** « Bon.
-Le serveur va pas tenir.
-Bonne journée. »
-**Texte à l'écran :** `jour 1` → noir.
+Je ferme l'ordi.
+Je sors. »
+**Texte :** `jour 1` → noir.
+
+> Ne mets pas de logo après. Le dernier plan EST le message : l'appli marche,
+> donc il quitte son bureau. Un logo par-dessus le tue.
 
 ---
 
-## 3. VERSION 30 s (si tu veux poster vite)
+## 3. VERSION 30 s
 
-Supprime le SETUP entier, raccourcis le POINT BAS à 4 s (garde seulement
-« La vraie peur, c'est que j'appuie et qu'il se passe rien »), garde HOOK →
-MONTÉE → POINT BAS → REBOND → CHUTE. Ça tombe à 29 s et ça marche aussi.
+Supprime L'IRONIE (mais garde `Zenvy` en texte sur le hook), raccourcis le POINT BAS
+à « La vraie peur, c'est que j'ouvre ma propre appli et que la carte reste vide. »
+On tombe à 29 s.
 
 ---
 
-## 4. RÈGLES DE MONTAGE
+## 4. CE QU'ON NE MET PAS DEDANS
+
+- **Le canal établissements / B2B.** Vrai, important, mais mortel dans un réel de 45 s :
+  ça transforme une histoire en pitch. Ça mérite son propre réel, avec un autre angle
+  (le point de vue du bar vide un mardi soir). On le fera séparément.
+- **Les inconnus vérifiés / les activités publiques.** Même raison. Un réel = une idée.
+  Ici l'idée c'est « je sors de chez moi ». Le reste, c'est la légende et la bio.
+- **Une démo de l'interface.** On voit la carte 2 secondes, en contexte. Jamais de tour du produit.
+
+---
+
+## 5. RÈGLES DE MONTAGE
 
 | Règle | Détail |
 |---|---|
-| **Coupe sur la voix** | Chaque coupe tombe sur une syllabe accentuée, jamais sur le temps de la musique. C'est ça, la sensation "nerveuse". |
+| **Coupe sur la voix** | Chaque coupe tombe sur une syllabe accentuée, pas sur le temps de la musique. |
 | **Jamais 2 plans pareils de suite** | Alterne : visage → mains → écran → objet → visage. |
-| **J-cut** | Le son de la phrase suivante démarre 4 images AVANT son image. Ça tire le spectateur en avant. |
-| **Punch-in** | Tout plan fixe de plus de 2 s reçoit un zoom lent de 3–5 %. Aucun plan totalement immobile. |
-| **Le silence de 1 s** | Après « J'appuie. », un vrai silence complet. C'est le seul endroit du réel où il ne se passe rien. Il vaut de l'or. |
+| **J-cut** | Le son de la phrase suivante démarre 4 images avant son image. Ça tire vers l'avant. |
+| **Punch-in** | Tout plan fixe de plus de 2 s : zoom lent de 3–5 %. Aucun plan totalement immobile. |
+| **Le silence de 1 s** | Après « J'appuie. ». Seul endroit du réel où il ne se passe rien. Il vaut de l'or. |
 | **Sous-titres mot à mot** | 1–2 mots centrés bas, gras. Une seule couleur d'accent sur toute la vidéo. |
-| **Sound design** | 4 sons max : clavier, riser avant le point bas, impact sur « C'est en ligne », notification. Pas plus. |
+| **Sound design** | 4 sons max : clavier, riser avant le point bas, impact sur « C'est en ligne », notification. |
 
 **Musique :** instrumental à tension, ~90 BPM, montante. Elle s'arrête **net** à 0:26
-et revient à 0:34. C'est le seul effet musical nécessaire.
+et revient à 0:35. C'est le seul effet musical nécessaire.
 
 ---
 
-## 5. RUSHS
+## 6. RUSHS
 
-**Les 4 irrattrapables** (voir en haut) — le clic, la 1re notif, ton visage après, la page en ligne.
+**Les 5 irrattrapables** — voir en haut.
 
-**Les 6 rejouables**
+**Les 7 rejouables**
 - [ ] Visage de face fixant l'écran, immobile — 10 s
-- [ ] Doigt suspendu au-dessus de la souris / de l'écran, sans cliquer — 10 s
+- [ ] Doigt suspendu au-dessus du bouton, sans cliquer — 10 s
 - [ ] Mains sur le clavier, gros plan latéral — 10 s
-- [ ] L'écran (peu importe le contenu, on ne lit pas) — 10 s
-- [ ] La personne qui recule sur sa chaise, regarde ailleurs — 10 s
-- [ ] Plan large du poste de travail — 5 s
-
-**Bonus qui portent** : la lumière de l'écran sur le visage, le café froid,
-le regard qui monte vers la caméra une demi-seconde (à garder pour la toute fin).
+- [ ] L'écran (peu importe le contenu) — 10 s
+- [ ] Toi qui recules sur ta chaise, regard ailleurs — 10 s
+- [ ] Plan large du bureau, rideaux fermés, lumière d'écran — 5 s
+- [ ] La carte de Zenvy sur le tel, scroll lent — 5 s
 
 **Envoi** : dépose dans `reel/rushs/` ou donne-moi un lien (Drive / WeTransfer).
-Nomme simplement : `clic-01.mov`, `visage-01.mov`… Dès que je les ai, je te sors la
-conduite de montage exacte — fichier, timecode d'entrée/sortie, ligne de voix off —
+Nomme simplement : `clic-01.mov`, `visage-01.mov`, `sortie-01.mov`… Dès que je les ai,
+je sors la conduite de montage exacte — fichier, timecode d'entrée/sortie, ligne de VO —
 prête à exécuter dans CapCut.
 
 ---
 
-## 6. VOIX OFF
+## 7. VOIX OFF
 
 - Micro à 15 cm, sous le menton, pas devant la bouche.
 - Enregistre **assis**. La voix intérieure est une voix affaissée.
 - Parle **plus bas que ton volume normal**. Murmure appuyé.
 - Ne joue pas la panique : dis les phrases *plus vite*. C'est le montage qui la crée.
 - 3 prises entières d'affilée sans réécouter. La 3e est presque toujours la bonne.
-- 1 s de silence entre chaque bloc, pour avoir de la marge au montage.
+- 1 s de silence entre chaque bloc, pour la marge au montage.
 
 ---
 
-## 7. PUBLICATION
+## 8. PUBLICATION
 
-Poste le réel **le soir même**, pas demain. Le jour de sortie est le seul jour où
-« l'appli sort aujourd'hui » est vrai — et c'est ce qui donne au réel son urgence.
-En légende, une seule phrase et un lien. Pas de pavé : tout est déjà dit dans la vidéo.
+Poste **ce soir**, pas demain : aujourd'hui est le seul jour où « ça sort aujourd'hui »
+est vrai, et c'est ce qui donne son urgence au réel.
+
+**Légende** — une phrase, un lien, rien d'autre :
+> Zenvy est en ligne. Ouvre, mets-toi dispo, vois qui l'est aussi. [lien]
+
+Le lien va en bio, pas dans la légende, si la plateforme le pénalise.
