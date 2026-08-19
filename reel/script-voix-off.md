@@ -20,7 +20,7 @@ Le reste se retourne ce soir. Ces cinq-là, non.
 ## 1. L'ANGLE
 
 Zenvy sert à faire sortir les gens de chez eux.
-Tu as passé quatre mois enfermé à la coder.
+Tu as passé un an enfermé à la coder.
 
 **C'est ça, le réel.** L'ironie n'est pas une blague qu'on ajoute, c'est la colonne
 vertébrale : la vidéo commence sur toi seul devant un écran et se termine sur toi
@@ -36,15 +36,15 @@ c'est une carte vide.* Tu n'as pas à inventer de tension, elle est dans le prod
 ### ▸ HOOK — 0:00 → 0:05
 **Image :** gros plan sur le doigt suspendu au-dessus du bouton. Immobile.
 **VO :** « Il y a un bouton.
-Si j'appuie dessus, quatre mois de ma vie deviennent publics.
+Si j'appuie dessus, un an de ma vie devient public.
 J'ai la main dessus depuis onze minutes. »
 **Son :** silence total. Une respiration.
 **Texte :** `11 minutes`
 
 ### ▸ L'IRONIE — 0:05 → 0:13
 **Image :** plan large du bureau, rideaux fermés → visage → écran.
-**VO :** « Quatre mois à coder une appli qui sert à sortir de chez soi.
-Quatre mois où je suis pas sorti de chez moi.
+**VO :** « Un an à coder une appli qui sert à sortir de chez soi.
+Un an où je suis pas sorti de chez moi.
 Je vois l'ironie. Merci. »
 **Texte :** `Zenvy` (première et seule apparition du nom en gros)
 
@@ -104,7 +104,7 @@ Je sors. »
 
 ## 3. VERSION 30 s
 
-Supprime L'IRONIE (mais garde `Zenvy` en texte sur le hook), raccourcis le POINT BAS
+Supprime L'IRONIE — à contrecœur, c'est le meilleur bloc du réel — (mais garde `Zenvy` en texte sur le hook), raccourcis le POINT BAS
 à « La vraie peur, c'est que j'ouvre ma propre appli et que la carte reste vide. »
 On tombe à 29 s.
 
