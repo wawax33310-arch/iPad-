@@ -27,6 +27,12 @@ et beaucoup de rushes sont larges avec des sujets petits et lents.
 | Régularité | coupes uniformes | rafales de 0,8 s, respirations de 1,6 s |
 | Effets sonores | 16 | 20 |
 
+Typographie : **Montserrat Bold**, embarquée dans `polices/` (licence SIL OFL)
+pour que le rendu soit reproductible sans installer la police. Corps réduits —
+mots-clés à 104 px au lieu de 121, étiquettes à 48 au lieu de 58 : Montserrat
+rend plus large que Liberation Sans à taille égale, et « OFFRE DE RENTRÉE »
+tient maintenant sur une seule ligne.
+
 Deux étiquettes ont été raccourcies : à 0,85 s à l'écran, « MUSCU & CROSS
 TRAINING » n'était pas lisible — une étiquette qu'on ne lit pas est du bruit.
 

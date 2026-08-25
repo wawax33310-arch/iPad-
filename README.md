@@ -183,7 +183,8 @@ s'allume à son tour. `sous_titres: false` désactive tout.
 
 | Clé | Défaut | Rôle |
 |---|---|---|
-| `police` | `Liberation Sans` | Famille installée (voir `dossier_polices` pour une police de marque) |
+| `police` | `Liberation Sans` | Nom de famille de la police (celui que renvoie `fc-query`, pas le nom du fichier) |
+| `dossier_polices` | — | Dossier contenant les `.ttf` à utiliser. Permet d'embarquer une police de marque sans l'installer : dépose `Montserrat-Bold.ttf` dans `polices/`, mets `police: Montserrat` et `dossier_polices: polices` |
 | `taille` | `92` | Corps des sous-titres |
 | `couleur` / `couleur_active` | blanc / `#FFE600` | Texte, puis mot en cours |
 | `contour` / `ombre` | `8` / `3` | Lisibilité sur fond clair |

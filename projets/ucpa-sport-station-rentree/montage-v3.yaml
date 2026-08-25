@@ -20,8 +20,9 @@ projet:
   crf: 24
 
 style:
-  police: Liberation Sans
-  taille: 84
+  police: Montserrat
+  dossier_polices: polices     # la police voyage avec le projet (licence SIL OFL)
+  taille: 72
   couleur: "#FFFFFF"
   couleur_active: "#FF6A13"
   contour: 8
@@ -30,7 +31,7 @@ style:
   mots_par_ecran: 3
   majuscules: true
   mode: mot_a_mot
-  sticker_taille: 58
+  sticker_taille: 48
   sticker_position: 0.135
 
 textes:
