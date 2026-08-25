@@ -62,6 +62,8 @@ def cmd_render(args: argparse.Namespace) -> int:
     from .render import rendre  # import tardif : ffmpeg n'est requis qu'ici
 
     spec = charger(args.montage)
+    if args.crf is not None:
+        spec.projet.crf = args.crf
     if not args.sans_controle:
         print("Contrôle :")
         alertes = _afficher_controle(spec)
@@ -169,6 +171,9 @@ def construire_parseur() -> argparse.ArgumentParser:
     p_render.add_argument("montage")
     p_render.add_argument("-o", "--sortie", help="remplace projet.sortie")
     p_render.add_argument("--sans-controle", action="store_true")
+    p_render.add_argument("--crf", type=int,
+                          help="qualité d'encodage : 18 quasi transparent, 21 par défaut, "
+                               "24 pour un fichier léger")
     p_render.add_argument("--strict", action="store_true", help="refuse de rendre s'il reste des alertes")
     p_render.add_argument("--garder-temp", action="store_true", help="conserve les fichiers intermédiaires")
     p_render.add_argument("-v", "--verbose", action="store_true")

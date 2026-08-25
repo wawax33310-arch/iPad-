@@ -31,6 +31,7 @@ ALIAS = {
     # projet
     "project": "projet", "name": "nom", "width": "largeur", "height": "hauteur",
     "output": "sortie", "duration": "duree", "max_duration": "duree_max",
+    "quality": "crf",
     # style
     "font": "police", "size": "taille", "color": "couleur",
     "highlight": "couleur_active", "outline": "contour", "shadow": "ombre",
@@ -82,6 +83,7 @@ class Projet:
     fps: int = 30
     sortie: str = "sortie/montage.mp4"
     duree_max: float | None = None
+    crf: int = 21          # 18 = quasi transparent, 23 = léger, 28 = visible
 
     @property
     def ratio(self) -> float:
@@ -324,7 +326,10 @@ def depuis_dict(brut: dict, *, racine: str = ".", chemin: str = "") -> Spec:
         fps=int(p.get("fps", 30)),
         sortie=str(p.get("sortie", "sortie/montage.mp4")),
         duree_max=_flottant(p, "duree_max", None, contexte="projet."),
+        crf=int(p.get("crf", p.get("qualite", 21))),
     )
+    if not 0 <= projet.crf <= 51:
+        raise ErreurSpec("projet.crf doit être entre 0 et 51 (18-28 en pratique)")
     if projet.largeur % 2 or projet.hauteur % 2:
         raise ErreurSpec("projet.largeur et projet.hauteur doivent être pairs (contrainte H.264)")
 

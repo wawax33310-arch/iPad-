@@ -18,6 +18,7 @@ projet:
   fps: 30
   sortie: sortie/ucpa-rentree.mp4
   duree_max: 45
+  crf: 24                # Instagram réencode : inutile de livrer plus lourd
 
 style:
   police: Liberation Sans

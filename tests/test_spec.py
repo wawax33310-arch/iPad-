@@ -46,6 +46,13 @@ class TestChargement(unittest.TestCase):
         self.assertEqual(spec.plans[0].transition, "cut")
         self.assertEqual(spec.plans[1].transition, "fondu")
 
+    def test_qualite_encodage(self):
+        self.assertEqual(depuis_dict(base()).projet.crf, 21)
+        self.assertEqual(depuis_dict(base(projet={"crf": 24})).projet.crf, 24)
+        self.assertEqual(depuis_dict(base(projet={"qualite": 18})).projet.crf, 18)
+        with self.assertRaises(ErreurSpec):
+            depuis_dict(base(projet={"crf": 80}))
+
     def test_musique_en_chaine(self):
         spec = depuis_dict(base(musique="m.mp3"))
         self.assertEqual(spec.musique.fichier, "m.mp3")

@@ -11,6 +11,7 @@ projet:
   fps: 30
   sortie: sortie/ma-video.mp4
   duree_max: 45           # sert au contrôle, ne coupe rien
+  crf: 21                 # qualité : 18 quasi transparent, 24 fichier léger
 
 style:
   police: Liberation Sans # nom de famille de police installée (ou voir dossier_polices)

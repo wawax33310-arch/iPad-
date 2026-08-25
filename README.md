@@ -94,6 +94,7 @@ YAML ou JSON. Les clés sont en français ; leurs équivalents anglais
 | `fps` | `30` | Cadence |
 | `sortie` | `sortie/montage.mp4` | Fichier produit (relatif au montage) |
 | `duree_max` | — | Limite de contrôle ; ne coupe rien |
+| `crf` | `21` | Qualité d'encodage : 18 quasi transparent, 24 fichier léger |
 
 ### `plans`
 
