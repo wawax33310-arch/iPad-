@@ -121,6 +121,9 @@ plans:
 # Pas de sous-titre sur les deux plans « TU PRÉFÈRES TESTER ? » et
 # « PORTES OUVERTES » : le mot-clé plein cadre y suffit.
 sous_titres:
+  actif: false          # sous-titres retirés : les étiquettes et les mots-clés
+                        # plein cadre portent seuls le message.
+                        # Les lignes restent ici pour caler la voix off.
   lignes:
     - {debut: 0.15,  fin: 2.90,  texte: "Tu savais qu'à Bordeaux tu peux faire tout ça"}
     - {debut: 3.15,  fin: 7.40,  texte: "Que tu viennes pour te challenger ou découvrir un nouveau sport"}

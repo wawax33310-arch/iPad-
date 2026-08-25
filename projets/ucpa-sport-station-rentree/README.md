@@ -21,6 +21,11 @@ Scripts de voix off correspondants : `voix-off-v2.md` et `voix-off.md`.
 | Portes ouvertes | 28,6 → 40,4 s | « TU PRÉFÈRES TESTER ? », puis samedi 12 septembre, 9h-18h, 100 % gratuit, initiations, animations |
 | CTA | 40,4 → 44,4 s | Ralenti 0,5× : « JOURNÉE PORTES OUVERTES / 12 SEPTEMBRE · 100 % GRATUIT », « INSCRIS-TOI », le site en sous-titre |
 
+Pas de sous-titres : les étiquettes d'activité et les mots-clés plein cadre
+portent seuls le message. Les lignes restent dans `montage-v2.yaml` sous
+`sous_titres.actif: false` — elles servent à caler la voix off, et il suffit de
+repasser `actif: true` pour les réafficher.
+
 Sound design : 16 effets synthétisés (whoosh sur les coupes du hook, impact à
 chaque changement de bloc, pop sur les mots-clés, riser avant l'offre, drop sur
 la bascule), à −5 dB pour laisser la place à la voix et à la musique.
@@ -81,8 +86,9 @@ Les rushes ne sont pas versionnés. Pour rejouer le montage, place les fichiers
 - **Son** : le montage est livré muet, prêt pour la voix off et la musique
   (voir `voix-off.md`). Les rushes sont coupés : sur 28 plans, les ambiances
   hétérogènes hachent l'écoute.
-- **Contrôle (v2)** : `ugcut check` ne signale plus qu'un conseil — « seul le
-  sound design est présent », le temps que la voix off et la musique arrivent.
+- **Contrôle (v2)** : `ugcut check` signale l'absence de sous-titres et le fait
+  que seul le sound design soit présent. Les deux sont des choix : sous-titres
+  retirés à la demande, voix off et musique à venir.
 - **Contrôle (v1)** : couverture de sous-titres à 61 % et absence de son. Les deux sont des choix : pas de sous-titres pendant
   l'énumération des activités (les étiquettes portent le message) ni sur les
   trois plans à titre plein cadre.
