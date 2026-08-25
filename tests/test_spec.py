@@ -78,6 +78,44 @@ class TestChargement(unittest.TestCase):
         self.assertTrue(spec.musique.ducking)
 
 
+class TestTempo(unittest.TestCase):
+    def test_temps_en_secondes(self):
+        spec = depuis_dict({"tempo": {"bpm": 120},
+                            "plans": [{"source": "a.mp4", "temps": 2}]})
+        self.assertEqual(spec.tempo.temps, 0.5)
+        self.assertEqual(spec.tempo.mesure, 2.0)
+        self.assertAlmostEqual(spec.plans[0].duree, 1.0)
+
+    def test_la_vitesse_ne_decale_pas_la_grille(self):
+        """`temps` est une durée à l'écran : la source doit être plus longue."""
+        spec = depuis_dict({"tempo": 120,
+                            "plans": [{"source": "a.mp4", "temps": 2, "vitesse": 1.5}]})
+        plan = spec.plans[0]
+        self.assertAlmostEqual(plan.duree, 1.5)              # lu dans le rush
+        self.assertAlmostEqual(plan.duree / plan.vitesse, 1.0)   # à l'écran
+
+    def test_le_fondu_est_compense(self):
+        """Un fondu avance le plan : on le rallonge d'autant."""
+        spec = depuis_dict({"tempo": 120, "plans": [
+            {"source": "a.mp4", "temps": 2},
+            {"source": "b.mp4", "temps": 4, "transition": "flash",
+             "transition_duree": 0.2}]})
+        self.assertAlmostEqual(spec.plans[1].duree, 2.2)
+
+    def test_duree_explicite_intacte(self):
+        spec = depuis_dict({"tempo": 120,
+                            "plans": [{"source": "a.mp4", "duree": 1.37}]})
+        self.assertAlmostEqual(spec.plans[0].duree, 1.37)
+
+    def test_temps_sans_tempo(self):
+        with self.assertRaises(ErreurSpec):
+            depuis_dict({"plans": [{"source": "a.mp4", "temps": 2}]})
+
+    def test_bpm_aberrant(self):
+        with self.assertRaises(ErreurSpec):
+            depuis_dict({"tempo": {"bpm": 900}, "plans": [{"source": "a.mp4"}]})
+
+
 class TestSonEtStyles(unittest.TestCase):
     def test_son_sur_un_plan(self):
         spec = depuis_dict(base(plans=[{"source": "a.mp4", "son": "whoosh",

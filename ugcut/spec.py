@@ -81,6 +81,22 @@ def _flottant(source: dict, cle: str, defaut: float | None = None,
 
 
 @dataclass
+class Tempo:
+    """Tempo de la musique : la grille sur laquelle tombent les coupes."""
+    bpm: float
+    signature: int = 4          # temps par mesure
+
+    @property
+    def temps(self) -> float:
+        """Durée d'un temps, en secondes."""
+        return 60.0 / self.bpm
+
+    @property
+    def mesure(self) -> float:
+        return self.temps * self.signature
+
+
+@dataclass
 class Projet:
     nom: str = "montage"
     largeur: int = 1080
@@ -132,6 +148,7 @@ class Plan:
     debut: float = 0.0
     fin: float | None = None
     duree: float | None = None
+    temps: float | None = None      # durée à l'écran, en temps de la musique
     vitesse: float = 1.0
     recadrage: str = "remplir"
     cadrage: float = 0.5            # 0 = gauche/haut, 1 = droite/bas
@@ -189,6 +206,7 @@ class VoixOff:
 class Spec:
     projet: Projet
     style: Style
+    tempo: Tempo | None
     plans: list[Plan]
     sous_titres: SousTitres
     musique: Musique | None = None
@@ -280,6 +298,7 @@ def _lire_plan(brut: Any, contexte: str) -> Plan:
         debut=_flottant(brut, "debut", 0.0, contexte=contexte) or 0.0,
         fin=_flottant(brut, "fin", None, contexte=contexte),
         duree=_flottant(brut, "duree", None, contexte=contexte),
+        temps=_flottant(brut, "temps", None, contexte=contexte),
         vitesse=vitesse,
         recadrage=recadrage,
         cadrage=float(cadrage),
@@ -296,6 +315,22 @@ def _lire_plan(brut: Any, contexte: str) -> Plan:
         son_gain_db=_flottant(brut, "son_gain_db", 0.0, contexte=contexte) or 0.0,
         son_decalage=_flottant(brut, "son_decalage", 0.0, contexte=contexte) or 0.0,
     )
+
+
+def _caler_sur_le_tempo(plans: list[Plan], tempo: Tempo) -> None:
+    """Convertit les durées exprimées en temps, et compense les fondus.
+
+    Un fondu de durée T fait démarrer le plan T secondes plus tôt : sans
+    compensation, tout ce qui suit sort de la grille. On rallonge donc le plan
+    de T pour que la coupe suivante retombe sur le temps.
+    """
+    for plan in plans:
+        if plan.temps is None:
+            continue
+        secondes = plan.temps * tempo.temps
+        if plan.transition in TRANSITIONS and TRANSITIONS[plan.transition] is not None:
+            secondes += plan.transition_duree
+        plan.duree = secondes * plan.vitesse
 
 
 def _resoudre_zooms_auto(plans: list[Plan]) -> None:
@@ -426,12 +461,26 @@ def depuis_dict(brut: dict, *, racine: str = ".", chemin: str = "") -> Spec:
     if not plans_bruts:
         raise ErreurSpec("Aucun plan : ajoute au moins une entrée sous `plans:`")
     plans = [_lire_plan(pl, f"plans[{i}].") for i, pl in enumerate(plans_bruts)]
-    plans[0].transition = "cut"      # rien à fondre avant le premier plan
-    _resoudre_zooms_auto(plans)
-
-    variantes = [_lire_plan(pl, f"variantes[{i}].") for i, pl in enumerate(brut.get("variantes") or [])]
+    variantes = [_lire_plan(pl, f"variantes[{i}].")
+                 for i, pl in enumerate(brut.get("variantes") or [])]
     for v in variantes:
         v.transition = "cut"
+    plans[0].transition = "cut"      # rien à fondre avant le premier plan
+
+    tempo = None
+    if (t := brut.get("tempo")):
+        if isinstance(t, (int, float)):
+            t = {"bpm": t}
+        bpm = _flottant(t, "bpm", None, contexte="tempo.")
+        if not bpm or not 30 <= bpm <= 300:
+            raise ErreurSpec("tempo.bpm doit être un nombre entre 30 et 300")
+        tempo = Tempo(bpm=bpm, signature=int(t.get("signature", 4)))
+        _caler_sur_le_tempo(plans, tempo)
+        _caler_sur_le_tempo(variantes, tempo)
+    elif any(p.temps is not None for p in plans):
+        raise ErreurSpec("des plans utilisent `temps:` mais `tempo:` n'est pas défini")
+
+    _resoudre_zooms_auto(plans)
 
     musique = None
     if (m := brut.get("musique")):
@@ -463,6 +512,7 @@ def depuis_dict(brut: dict, *, racine: str = ".", chemin: str = "") -> Spec:
     return Spec(
         projet=projet,
         style=style,
+        tempo=tempo,
         plans=plans,
         sous_titres=_lire_sous_titres(brut.get("sous_titres")),
         textes=_lire_textes(brut.get("textes"), "textes."),

@@ -1,15 +1,45 @@
 # Réel rentrée — UCPA Sport Station Bordeaux
 
-Trois montages, sur les mêmes rushes :
+Quatre montages, sur les mêmes rushes :
 
 | | Durée | Plans | Plan moyen | Caractère |
 |---|---|---|---|---|
-| `montage-v3.yaml` **(livré en dernier)** | 42,6 s | 42 | 1,0 s | Le plus dynamique : mouvement sur chaque plan, plans larges accélérés, rythme irrégulier |
+| `montage-v4.yaml` **(livré en dernier)** | 44,00 s | 41 | 1,1 s | Calé sur « Alive » (Empire of the Sun), 120 BPM : chaque coupe sur un temps, chaque section sur une mesure |
+| `montage-v3.yaml` | 42,6 s | 42 | 1,0 s | Le plus dynamique : mouvement sur chaque plan, plans larges accélérés, rythme irrégulier |
 | `montage-v2.yaml` | 44,4 s | 31 | 1,4 s | Mots-clés plein cadre, sound design, speed ramp |
 | `montage.yaml` | 42,3 s | 28 | 1,5 s | Première version, plus sobre, sans effets sonores |
 
 Scripts de voix off : `voix-off-v2.md` (valable aussi pour la v3, à recaler sur
 les nouveaux timecodes) et `voix-off.md`.
+
+## v4 — le calage sur la musique
+
+« Alive » d'Empire of the Sun est à **120 BPM en 4/4** : un temps toutes les
+0,5 s, une mesure toutes les 2 s. Les durées des plans sont exprimées en
+`temps:` et non en secondes, et le montage tombe pile sur 44,00 s, soit
+22 mesures.
+
+| Mesures | Bloc | Temps |
+|---|---|---|
+| 1 → 2 | Hook | 8 (une coupe par temps) |
+| 3 → 8 | Le centre | 24 |
+| 9 → 15 | L'offre | 28 |
+| 16 → 20 | Portes ouvertes | 20 |
+| 21 → 22 | CTA | 8 |
+
+Vérifié sur le fichier rendu par détection de plans : 35 des 37 coupes
+détectées tombent sur un temps à moins d'une image, écart moyen 9 ms. Les deux
+restantes sont les fondus au blanc, que le détecteur situe au milieu du flash —
+le flash, lui, se résout bien sur le temps.
+
+**La musique n'est pas incrustée** : je n'ai pas le fichier, et « Alive » est un
+titre commercial. Deux façons de la poser :
+- dans Instagram à la publication, en calant le début du morceau sur un premier
+  temps (à vérifier : le catalogue « usage commercial » d'un compte pro ne
+  contient pas forcément ce titre) ;
+- en fournissant le fichier, et alors `musique.debut` doit valoir l'instant du
+  premier temps dans le fichier — la ligne est déjà prête, commentée, dans
+  `montage-v4.yaml`.
 
 ## v3 — ce qui la rend dynamique
 

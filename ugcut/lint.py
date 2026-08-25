@@ -24,6 +24,7 @@ PLAN_STATIQUE_MAX = 5.0
 COUVERTURE_MIN = 0.80
 ZONE_SOUS_TITRES = (0.55, 0.84)   # au-dessus de l'UI TikTok/Reels
 ZONE_STICKER = (0.06, 0.34)
+TOLERANCE_TEMPO = 0.02            # 20 ms : en deçà, l'oreille ne l'entend pas
 
 
 @dataclass
@@ -54,6 +55,21 @@ def _durees(spec: Spec) -> tuple[list[float], list[str]]:
     return durees, erreurs
 
 
+def _coupes(spec: Spec, durees: list[float]) -> list[float]:
+    """Instant de fin de chaque plan sur la timeline finale."""
+    fins: list[float] = []
+    fin = 0.0
+    for i, duree in enumerate(durees):
+        chevauchement = 0.0
+        if i and durees[i - 1] and duree:
+            faux_prec = Segment(spec.plans[i - 1], "", durees[i - 1], 0.0, None)  # type: ignore[arg-type]
+            faux_cour = Segment(spec.plans[i], "", duree, 0.0, None)              # type: ignore[arg-type]
+            chevauchement = recouvrement(faux_prec, faux_cour)
+        fin = max(0.0, fin - chevauchement) + duree
+        fins.append(fin)
+    return fins
+
+
 def analyser_montage(spec: Spec) -> list[Constat]:
     constats: list[Constat] = []
     durees, erreurs = _durees(spec)
@@ -61,13 +77,9 @@ def analyser_montage(spec: Spec) -> list[Constat]:
     for manquant in erreurs:
         constats.append(Constat(ALERTE, "source", f"Rush illisible ou absent : {manquant}"))
 
-    # Durée totale, raccords déduits
-    total = sum(durees)
-    for i in range(1, len(spec.plans)):
-        if durees[i - 1] and durees[i]:
-            faux_prec = Segment(spec.plans[i - 1], "", durees[i - 1], 0.0, None)  # type: ignore[arg-type]
-            faux_cour = Segment(spec.plans[i], "", durees[i], 0.0, None)          # type: ignore[arg-type]
-            total -= recouvrement(faux_prec, faux_cour)
+    # Position de chaque coupe sur la timeline, raccords déduits
+    coupes = _coupes(spec, durees)
+    total = coupes[-1] if coupes else 0.0
 
     if total == 0:
         return constats or [Constat(ALERTE, "vide", "Aucun plan exploitable")]
@@ -97,7 +109,10 @@ def analyser_montage(spec: Spec) -> list[Constat]:
         constats.append(Constat(OK, "hook", f"Hook : {hook:.1f}s"))
 
     lignes = lignes_sous_titres(spec)
+    # l'accroche peut être attachée au premier plan, posée sur la timeline,
+    # ou portée par les sous-titres
     texte_tot = any(t.t <= 1.0 for t in spec.plans[0].textes)
+    texte_tot = texte_tot or any(t.t <= 1.0 for t in spec.textes)
     texte_st = any(l.debut <= 1.0 for l in lignes)
     if not (texte_tot or texte_st):
         constats.append(Constat(ALERTE, "hook_texte", (
@@ -187,6 +202,22 @@ def analyser_montage(spec: Spec) -> list[Constat]:
                 "tendance ajouté à la publication.")))
         else:
             constats.append(Constat(ALERTE, "audio", "Ni voix ni musique : la vidéo est muette."))
+
+    # Calage sur la musique
+    if spec.tempo:
+        battement = spec.tempo.temps
+        ecarts = [abs(round(c / battement) * battement - c) for c in coupes[:-1]]
+        hors_grille = [(spec.plans[i].id or spec.plans[i].source, e)
+                       for i, e in enumerate(ecarts) if e > TOLERANCE_TEMPO]
+        if hors_grille:
+            details = ", ".join(f"{nom} ({e * 1000:.0f} ms)" for nom, e in hors_grille[:4])
+            constats.append(Constat(ALERTE, "tempo", (
+                f"{len(hors_grille)} coupe(s) hors de la grille à "
+                f"{spec.tempo.bpm:.0f} BPM : {details}")))
+        else:
+            constats.append(Constat(OK, "tempo", (
+                f"Coupes calées sur le tempo ({spec.tempo.bpm:.0f} BPM, "
+                f"écart max {max(ecarts, default=0) * 1000:.0f} ms)")))
 
     # Format de sortie
     if (spec.projet.largeur, spec.projet.hauteur) != (1080, 1920):

@@ -96,6 +96,27 @@ YAML ou JSON. Les clés sont en français ; leurs équivalents anglais
 | `duree_max` | — | Limite de contrôle ; ne coupe rien |
 | `crf` | `21` | Qualité d'encodage : 18 quasi transparent, 24 fichier léger |
 
+### `tempo` (caler le montage sur la musique)
+
+```yaml
+tempo: {bpm: 120, signature: 4}
+```
+
+Les plans expriment alors leur durée en `temps:` plutôt qu'en `duree:` — c'est
+la grille qui décide, pas l'œil. Un fondu avance le plan suivant, donc il est
+compensé automatiquement : la coupe d'après retombe sur le temps. `ugcut check`
+vérifie ensuite chaque coupe et donne l'écart maximum.
+
+```yaml
+plans:
+  - {source: rushes/hook.mov, temps: 1}                 # un temps
+  - {source: rushes/offre.mov, temps: 4, transition: flash}   # une mesure
+```
+
+Pour que la grille corresponde à la musique, `musique.debut` doit valoir
+l'instant du premier temps dans le fichier : le premier temps tombe alors à 0 s
+de la vidéo.
+
 ### `plans`
 
 Un plan = un extrait d'un rush. `debut`, `fin` et `duree` se lisent **dans le
@@ -107,6 +128,7 @@ rush** ; `vitesse` détermine ensuite la durée à l'écran (`duree / vitesse`).
 | `id`, `role` | — | Étiquettes. `role` sert au contrôle : `hook`, `probleme`, `solution`, `preuve`, `cta`, `broll` |
 | `debut` | `0` | Point d'entrée dans le rush |
 | `fin` / `duree` | fin du rush | Point de sortie, ou longueur prise dans le rush |
+| `temps` | — | Durée à l'écran en temps de la musique (nécessite `tempo:`) |
 | `vitesse` | `1.0` | 0.25 à 4.0, audio compris |
 | `recadrage` | `remplir` | `remplir` (recadre), `flou` (fond flouté), `ajuster` (bandes noires) |
 | `cadrage` | `0.5` | Où recadrer : `0`/`gauche` … `1`/`droite` |

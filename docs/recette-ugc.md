@@ -62,6 +62,12 @@ Les règles, dans l'ordre d'importance :
 - **Aucun plan fixe au-delà de 5 s.**
 - Le **b-roll** illustre ce qui est dit, jamais l'inverse : 1,5 à 2,5 s, son
   coupé (`garder_son: false`), et on revient au visage.
+- **Couper sur le tempo.** C'est le dernier levier, et le plus efficace : une
+  coupe qui tombe sur un temps se ressent même quand on ne l'écoute pas. Relève
+  le BPM du morceau, exprime les durées en temps (`tempo:` + `temps:`), et fais
+  tomber chaque changement de bloc sur un premier temps de mesure. Une vidéo de
+  44 s à 120 BPM, c'est 22 mesures : le montage se pense en mesures, pas en
+  secondes.
 - **Le speed ramp** (ralenti qui repart en accéléré) se monte en deux plans sur
   la même source, sans transition : c'est le geste le plus efficace pour donner
   de l'énergie à un plan d'action sans le raccourcir.
