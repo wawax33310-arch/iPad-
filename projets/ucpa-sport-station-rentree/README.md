@@ -1,13 +1,34 @@
 # Réel rentrée — UCPA Sport Station Bordeaux
 
-Deux montages, sur les mêmes rushes :
+Trois montages, sur les mêmes rushes :
 
-| | Durée | Plans | Caractère |
-|---|---|---|---|
-| `montage-v2.yaml` **(livré en dernier)** | 44,4 s | 31 | UGC premium : hook de 5 plans en 3 s, speed ramp, ralentis, mots-clés plein cadre, sound design |
-| `montage.yaml` | 42,3 s | 28 | Première version, plus sobre, sans effets sonores |
+| | Durée | Plans | Plan moyen | Caractère |
+|---|---|---|---|---|
+| `montage-v3.yaml` **(livré en dernier)** | 42,6 s | 42 | 1,0 s | Le plus dynamique : mouvement sur chaque plan, plans larges accélérés, rythme irrégulier |
+| `montage-v2.yaml` | 44,4 s | 31 | 1,4 s | Mots-clés plein cadre, sound design, speed ramp |
+| `montage.yaml` | 42,3 s | 28 | 1,5 s | Première version, plus sobre, sans effets sonores |
 
-Scripts de voix off correspondants : `voix-off-v2.md` et `voix-off.md`.
+Scripts de voix off : `voix-off-v2.md` (valable aussi pour la v3, à recaler sur
+les nouveaux timecodes) et `voix-off.md`.
+
+## v3 — ce qui la rend dynamique
+
+Le rythme de coupe n'était pas le problème : la v2 coupait déjà toutes les
+1,4 s, dans la cible du brief. Ce qui manquait, c'était du **mouvement dans le
+cadre** — 5 plans sur 31 avaient un zoom, les autres étaient des cadres fixes,
+et beaucoup de rushes sont larges avec des sujets petits et lents.
+
+| Levier | v2 | v3 |
+|---|---|---|
+| Plans | 31 (1,4 s de moyenne) | 42 (1,0 s) |
+| Plans avec un mouvement | 5 | 42 — `zoom: auto` alterne le sens à chaque coupe |
+| Plans larges accélérés | 0 | 11, entre 1,2× et 1,5× |
+| Ralentis / speed ramps | 2 | 4 |
+| Régularité | coupes uniformes | rafales de 0,8 s, respirations de 1,6 s |
+| Effets sonores | 16 | 20 |
+
+Deux étiquettes ont été raccourcies : à 0,85 s à l'écran, « MUSCU & CROSS
+TRAINING » n'était pas lisible — une étiquette qu'on ne lit pas est du bruit.
 
 ---
 

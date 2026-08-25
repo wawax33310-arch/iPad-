@@ -1,0 +1,161 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# UCPA Sport Station Bordeaux — Réel rentrée, version 3 (dynamique)
+#
+# Ce que change la v3 par rapport à la v2 :
+#   · 42 plans au lieu de 31 → plan moyen 1,0 s (contre 1,4 s)
+#   · un mouvement sur presque chaque plan (`zoom: auto`, alterné à chaque coupe)
+#     au lieu de 5 plans sur 31
+#   · les plans larges et lents accélérés (1,2× à 1,5×) pour que ça bouge dans le cadre
+#   · un rythme irrégulier : rafales de 0,8 s, respirations de 1,6 s
+#   · trois ralentis et un speed ramp pour casser la régularité
+# ─────────────────────────────────────────────────────────────────────────────
+
+projet:
+  nom: ucpa-rentree-v3
+  largeur: 1080
+  hauteur: 1920
+  fps: 30
+  sortie: sortie/ucpa-rentree-v3.mp4
+  duree_max: 45
+  crf: 24
+
+style:
+  police: Liberation Sans
+  taille: 84
+  couleur: "#FFFFFF"
+  couleur_active: "#FF6A13"
+  contour: 8
+  ombre: 3
+  position: 0.76
+  mots_par_ecran: 3
+  majuscules: true
+  mode: mot_a_mot
+  sticker_taille: 58
+  sticker_position: 0.135
+
+textes:
+  - {contenu: "8 ACTIVITÉS\n1 SEUL ENDROIT", t: 0.15, duree: 2.70, style: impact,
+     position: 0.38}
+
+effets_gain_db: -5
+effets_sonores:
+  - {t: 14.95, son: riser, duree: 0.85}
+
+# voix_off: {fichier: rushes/voix.m4a}
+# musique:  {fichier: rushes/musique.mp3, gain_db: -20, ducking: true, fondu_sortie: 1.5}
+
+plans:
+  # ══ HOOK — six mondes en 3 s, une coupe toutes les 0,5 s ═══════════════════
+  - {id: h1, role: hook, source: rushes/IMG_4908.mov, debut: 2.2, duree: 0.5,
+     garder_son: false, zoom: {de: 1.0, vers: 1.12}, son: impact}
+  - {id: h2, source: rushes/IMG_8997.mov, debut: 0.9, duree: 0.5, garder_son: false,
+     zoom: auto, son: whoosh}
+  - {id: h3, source: rushes/IMG_9875.mov, debut: 0.9, duree: 0.65, vitesse: 1.3,
+     garder_son: false, zoom: auto, son: whoosh}
+  - {id: h4, source: rushes/IMG_6319.mov, debut: 3.0, duree: 0.5, garder_son: false,
+     zoom: auto, son: whoosh}
+  - {id: h5, source: rushes/IMG_8686.mov, debut: 2.3, duree: 0.5, garder_son: false,
+     zoom: auto, son: whoosh}
+  - {id: h6, source: rushes/IMG_9195.mov, debut: 0.4, duree: 0.5, garder_son: false,
+     zoom: auto, son: whoosh}
+
+  # ══ LE CENTRE — rafales courtes, une étiquette par activité ════════════════
+  - {id: c1-escalade, source: rushes/IMG_9413.mov, debut: 1.5, duree: 1.0,
+     garder_son: false, zoom: auto, son: whoosh,
+     textes: [{contenu: "ESCALADE", t: 0.0, duree: 0.95}]}
+  - {id: c2-escalade, source: rushes/IMG_6332.mov, debut: 3.0, duree: 1.0, vitesse: 1.25,
+     garder_son: false, zoom: auto}
+  # speed ramp : le geste part au ralenti et repart accéléré, sans coupe visible
+  - {id: c3-padel-ralenti, source: rushes/IMG_2456.mov, debut: 1.80, duree: 0.45,
+     vitesse: 0.55, garder_son: false, son: whoosh}
+  - {id: c4-padel-accelere, source: rushes/IMG_2456.mov, debut: 2.25, duree: 1.15,
+     vitesse: 1.70, garder_son: false,
+     textes: [{contenu: "PADEL", t: 0.0, duree: 0.6}]}
+  - {id: c5-padel, source: rushes/IMG_7307.mov, debut: 1.6, duree: 0.96, vitesse: 1.2,
+     garder_son: false, zoom: auto}
+  - {id: c6-squash, source: rushes/IMG_9195.mov, debut: 1.4, duree: 0.9, garder_son: false,
+     zoom: auto, textes: [{contenu: "SQUASH", t: 0.0, duree: 0.85}]}
+  - {id: c7-squash, source: rushes/IMG_3937.mov, debut: 1.4, duree: 1.0, vitesse: 1.25,
+     garder_son: false, zoom: auto}
+  - {id: c8-golf, source: rushes/IMG_9438.mov, debut: 0.25, duree: 1.0, garder_son: false,
+     zoom: auto, textes: [{contenu: "GOLF", t: 0.0, duree: 0.95}]}
+  - {id: c9-golf, source: rushes/IMG_3620.mov, debut: 2.0, duree: 1.17, vitesse: 1.3,
+     garder_son: false, zoom: {de: 1.14, vers: 1.0}}
+  - {id: c10-fitness, source: rushes/IMG_7245.mov, debut: 2.8, duree: 0.9, garder_son: false,
+     zoom: auto, textes: [{contenu: "FITNESS", t: 0.0, duree: 0.85}]}
+  - {id: c11-fitness, source: rushes/IMG_5253.mov, debut: 0.6, duree: 0.96, vitesse: 1.2,
+     garder_son: false, zoom: auto}
+  - {id: c12-muscu, source: rushes/IMG_5855.mov, debut: 0.35, duree: 0.9, garder_son: false,
+     zoom: auto, textes: [{contenu: "MUSCU", t: 0.0, duree: 0.85}]}
+  - {id: c13-resto, source: rushes/IMG_7116.mov, debut: 0.7, duree: 0.9, garder_son: false,
+     zoom: auto, textes: [{contenu: "RESTO", t: 0.0, duree: 0.85}]}
+  - {id: c14-bar, source: rushes/IMG_9130.mov, debut: 2.5, duree: 1.04, vitesse: 1.3,
+     garder_son: false, zoom: auto, son: whoosh}
+  - {id: c15-rooftop, source: rushes/IMG_9877.mov, debut: 0.4, duree: 1.25, vitesse: 1.25,
+     garder_son: false, zoom: {de: 1.14, vers: 1.0},
+     textes: [{contenu: "ROOFTOP", t: 0.0, duree: 0.95}]}
+
+  # ══ L'OFFRE — un argument par plan, en grand ═══════════════════════════════
+  - {id: o1-offre, source: rushes/IMG_9746.mov, debut: 1.0, duree: 1.7, garder_son: false,
+     transition: flash, transition_duree: 0.2, zoom: {de: 1.12, vers: 1.0}, son: impact,
+     textes: [{contenu: "OFFRE DE RENTRÉE", t: 0.05, duree: 1.55, style: impact}]}
+  - {id: o2-sans-engagement, source: rushes/IMG_9438.mov, debut: 0.6, duree: 1.4,
+     garder_son: false, zoom: auto, son: pop, son_decalage: 0.05,
+     textes: [{contenu: "SANS ENGAGEMENT", t: 0.05, duree: 1.3, style: impact}]}
+  - {id: o3-meme-prix, source: rushes/IMG_6319.mov, debut: 4.5, duree: 1.4,
+     garder_son: false, zoom: auto, son: pop, son_decalage: 0.05,
+     textes: [{contenu: "MÊME PRIX", t: 0.05, duree: 1.3, style: impact}]}
+  - {id: o4-a-vie, source: rushes/IMG_7368.mov, debut: 0.25, duree: 1.4,
+     garder_son: false, zoom: auto, son: pop, son_decalage: 0.05,
+     textes: [{contenu: "À VIE", t: 0.05, duree: 1.3, style: impact}]}
+  - {id: o5-40-euros, source: rushes/IMG_6332.mov, debut: 4.5, duree: 1.6,
+     garder_son: false, zoom: auto, son: pop, son_decalage: 0.05,
+     textes: [{contenu: "40 € OFFERTS", t: 0.05, duree: 1.5, style: impact}]}
+  - {id: o6-dates, source: rushes/IMG_7244.mov, debut: 2.0, duree: 1.68, vitesse: 1.4,
+     garder_son: false, zoom: {de: 1.15, vers: 1.0},
+     textes: [{contenu: "24 AOÛT - 30 SEPTEMBRE", t: 0.0, duree: 1.1}]}
+  - {id: o7-packs, source: rushes/IMG_9130.mov, debut: 5.0, duree: 1.3, garder_son: false,
+     zoom: auto, textes: [{contenu: "HEURES PLEINES OU CREUSES", t: 0.0, duree: 1.25}]}
+  - {id: o8-trinquer, source: rushes/IMG_8196.mov, debut: 0.05, duree: 1.0,
+     garder_son: false, zoom: auto}
+  - {id: o9-pelouse, source: rushes/IMG_9848.mov, debut: 0.5, duree: 1.2, vitesse: 1.5,
+     garder_son: false, zoom: auto}
+
+  # ══ PORTES OUVERTES ════════════════════════════════════════════════════════
+  - {id: j1-bascule, source: rushes/IMG_9775.mov, debut: 0.4, duree: 1.3, garder_son: false,
+     transition: fondu, transition_duree: 0.25, zoom: {de: 1.0, vers: 1.10}, son: drop,
+     textes: [{contenu: "TU PRÉFÈRES TESTER ?", t: 0.05, duree: 1.2, style: impact}]}
+  - {id: j2-jpo, source: rushes/IMG_9391.mov, debut: 3.0, duree: 1.28, vitesse: 0.8,
+     garder_son: false, transition: flash, transition_duree: 0.2, son: impact,
+     textes: [{contenu: "SAMEDI 12 SEPTEMBRE", t: 0.0, duree: 1.5},
+              {contenu: "PORTES OUVERTES", t: 0.05, duree: 1.4, style: impact}]}
+  - {id: j3-horaires, source: rushes/IMG_3937.mov, debut: 2.4, duree: 0.9, garder_son: false,
+     zoom: auto, son: whoosh,
+     textes: [{contenu: "9H - 18H", t: 0.0, duree: 0.85}]}
+  - {id: j4-gratuit, source: rushes/IMG_9444.mov, debut: 2.5, duree: 1.2, garder_son: false,
+     zoom: auto, son: pop, son_decalage: 0.05,
+     textes: [{contenu: "100 % GRATUIT", t: 0.05, duree: 1.1, style: impact}]}
+  - {id: j5-golf-enfants, source: rushes/IMG_6982.mov, debut: 3.0, duree: 1.17, vitesse: 1.3,
+     garder_son: false, zoom: auto}
+  - {id: j6-photobooth, source: rushes/IMG_2477.mov, debut: 0.45, duree: 1.0,
+     garder_son: false, zoom: auto,
+     textes: [{contenu: "PHOTOBOOTH", t: 0.0, duree: 0.95}]}
+  - {id: j7-enfants, source: rushes/IMG_7026.mov, debut: 1.8, duree: 1.0, garder_son: false,
+     zoom: auto, textes: [{contenu: "ANIMATIONS ENFANTS", t: 0.0, duree: 0.95}]}
+  - {id: j8-jeux, source: rushes/IMG_9133.mov, debut: 1.2, duree: 1.0, garder_son: false,
+     zoom: auto, textes: [{contenu: "JEUX EXTÉRIEURS", t: 0.0, duree: 0.95}]}
+  - {id: j9-petanque, source: rushes/IMG_7138.mov, debut: 2.0, duree: 1.12, vitesse: 1.4,
+     garder_son: false, zoom: auto}
+  - {id: j10-tapas, source: rushes/IMG_7105.mov, debut: 0.8, duree: 0.9, garder_son: false,
+     zoom: auto, textes: [{contenu: "TAPAS & ROOFTOP", t: 0.0, duree: 0.85}]}
+  - {id: j11-coucher, source: rushes/IMG_9134.mov, debut: 3.0, duree: 1.26, vitesse: 1.4,
+     garder_son: false, zoom: auto}
+
+  # ══ CTA — ralenti 0,5× : après 40 s de rafale, la fin respire ══════════════
+  - {id: cta, role: cta, source: rushes/IMG_9877.mov, debut: 1.25, duree: 2.0, vitesse: 0.5,
+     garder_son: false, zoom: {de: 1.0, vers: 1.08}, son: impact,
+     textes: [{contenu: "JOURNÉE PORTES OUVERTES\n12 SEPTEMBRE · 100 % GRATUIT", t: 0.0, duree: 4.0},
+              {contenu: "INSCRIS-TOI", t: 0.25, duree: 3.6, style: impact}]}
+
+sous_titres:
+  actif: false

@@ -47,9 +47,19 @@ Les règles, dans l'ordre d'importance :
 - **Une coupe toutes les 1,5 à 3 s.** Le contrôle `rythme` te le rappelle.
 - Les coupes sont des **jump cuts** : même cadre, on enlève juste les
   respirations et les hésitations. C'est le geste central du montage UGC.
-- **Aucun plan fixe au-delà de 5 s.** S'il doit durer, ajoute un punch-in :
-  `zoom: {de: 1.0, vers: 1.06}`. 4 à 8 % suffisent — au-delà, ça se voit et ça
-  fait « monté ».
+- **Le rythme ne suffit pas : c'est le mouvement dans le cadre qui fait le
+  dynamisme.** Un plan fixe de 1,4 s paraît plus long qu'un plan qui bouge de
+  2 s. Si un montage semble mou alors que les coupes s'enchaînent, le problème
+  est presque toujours là. Trois leviers, dans cet ordre :
+  1. **Un punch-in sur chaque plan** — `zoom: auto` alterne le sens à chaque
+     coupe, ce qui rend le raccord lisible. 6 à 8 % suffisent, 12 à 15 % sur un
+     plan large.
+  2. **Accélérer les plans larges et lents** (1,2× à 1,5×) : le sujet est loin,
+     donc il bouge peu à l'écran — l'accélération lui rend sa vitesse.
+  3. **Casser la régularité.** Une coupe toutes les 1,5 s pendant 40 s
+     endort ; des rafales de 0,8 s suivies d'une respiration de 1,6 s tiennent
+     l'attention. La variation compte plus que la moyenne.
+- **Aucun plan fixe au-delà de 5 s.**
 - Le **b-roll** illustre ce qui est dit, jamais l'inverse : 1,5 à 2,5 s, son
   coupé (`garder_son: false`), et on revient au visage.
 - **Le speed ramp** (ralenti qui repart en accéléré) se monte en deux plans sur

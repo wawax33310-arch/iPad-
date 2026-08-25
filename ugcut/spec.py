@@ -13,6 +13,7 @@ from typing import Any, Iterable
 from .sfx import SONS, Effet
 
 RECADRAGES = {"remplir", "flou", "ajuster"}
+ZOOM_AUTO = 1.08          # amplitude du punch-in quand `zoom: auto`
 STYLES_TEXTE = {"sticker", "titre", "impact"}
 MODES_SOUS_TITRES = {"mot_a_mot", "ligne"}
 
@@ -142,6 +143,7 @@ class Plan:
     volume: float = 1.0
     role: str = ""                  # hook | probleme | solution | preuve | cta | broll
     textes: list[Texte] = field(default_factory=list)
+    zoom_auto: bool = False         # direction décidée à l'assemblage, en alternance
     son: str = ""                   # effet sonore joué au début du plan
     son_gain_db: float = 0.0
     son_decalage: float = 0.0
@@ -242,10 +244,13 @@ def _lire_plan(brut: Any, contexte: str) -> Plan:
         raise ErreurSpec(f"{contexte} : clé `source` manquante")
 
     zoom = brut.get("zoom") or {}
-    if isinstance(zoom, (int, float)):          # zoom: 1.08 -> punch-in de 1.0 vers 1.08
+    zoom_auto = isinstance(zoom, str) and zoom.lower() == "auto"
+    if zoom_auto:
+        zoom = {}
+    elif isinstance(zoom, (int, float)):        # zoom: 1.08 -> punch-in de 1.0 vers 1.08
         zoom = {"de": 1.0, "vers": float(zoom)}
     if not isinstance(zoom, dict):
-        raise ErreurSpec(f"{contexte}zoom doit être un nombre ou {{de, vers}}")
+        raise ErreurSpec(f"{contexte}zoom doit être `auto`, un nombre, ou {{de, vers}}")
 
     transition = str(brut.get("transition", "cut")).lower()
     if transition not in TRANSITIONS:
@@ -280,6 +285,7 @@ def _lire_plan(brut: Any, contexte: str) -> Plan:
         cadrage=float(cadrage),
         zoom_de=float(zoom.get("de", 1.0)),
         zoom_vers=float(zoom.get("vers", 1.0)),
+        zoom_auto=zoom_auto,
         transition=transition,
         transition_duree=_flottant(brut, "transition_duree", 0.25, contexte=contexte) or 0.25,
         garder_son=bool(brut.get("garder_son", True)),
@@ -290,6 +296,21 @@ def _lire_plan(brut: Any, contexte: str) -> Plan:
         son_gain_db=_flottant(brut, "son_gain_db", 0.0, contexte=contexte) or 0.0,
         son_decalage=_flottant(brut, "son_decalage", 0.0, contexte=contexte) or 0.0,
     )
+
+
+def _resoudre_zooms_auto(plans: list[Plan]) -> None:
+    """`zoom: auto` : on alterne punch-in et punch-out d'un plan à l'autre.
+
+    Deux plans voisins qui zooment dans le même sens se ressemblent ; en
+    alternant, chaque coupe change le sens du mouvement et se voit.
+    """
+    for i, plan in enumerate(plans):
+        if not plan.zoom_auto:
+            continue
+        if i % 2 == 0:
+            plan.zoom_de, plan.zoom_vers = 1.0, ZOOM_AUTO
+        else:
+            plan.zoom_de, plan.zoom_vers = ZOOM_AUTO, 1.0
 
 
 def _lire_sous_titres(brut: Any) -> SousTitres:
@@ -406,6 +427,7 @@ def depuis_dict(brut: dict, *, racine: str = ".", chemin: str = "") -> Spec:
         raise ErreurSpec("Aucun plan : ajoute au moins une entrée sous `plans:`")
     plans = [_lire_plan(pl, f"plans[{i}].") for i, pl in enumerate(plans_bruts)]
     plans[0].transition = "cut"      # rien à fondre avant le premier plan
+    _resoudre_zooms_auto(plans)
 
     variantes = [_lire_plan(pl, f"variantes[{i}].") for i, pl in enumerate(brut.get("variantes") or [])]
     for v in variantes:

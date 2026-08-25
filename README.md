@@ -110,7 +110,7 @@ rush** ; `vitesse` détermine ensuite la durée à l'écran (`duree / vitesse`).
 | `vitesse` | `1.0` | 0.25 à 4.0, audio compris |
 | `recadrage` | `remplir` | `remplir` (recadre), `flou` (fond flouté), `ajuster` (bandes noires) |
 | `cadrage` | `0.5` | Où recadrer : `0`/`gauche` … `1`/`droite` |
-| `zoom` | — | `1.06` ou `{de: 1.0, vers: 1.06}` — punch-in linéaire |
+| `zoom` | — | `auto`, `1.06`, ou `{de: 1.0, vers: 1.06}` — punch-in linéaire. `auto` alterne punch-in et punch-out d'un plan à l'autre : deux plans voisins qui zooment dans le même sens se ressemblent |
 | `transition` | `cut` | Raccord **entrant** (voir plus bas) |
 | `transition_duree` | `0.25` | Bridée à la moitié du plus court des deux plans |
 | `garder_son` | `true` | `false` pour un b-roll muet |

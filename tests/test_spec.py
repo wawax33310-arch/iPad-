@@ -36,6 +36,25 @@ class TestChargement(unittest.TestCase):
         self.assertEqual((spec.plans[0].zoom_de, spec.plans[0].zoom_vers), (1.0, 1.08))
         self.assertTrue(spec.plans[0].zoom_actif)
 
+    def test_zoom_auto_alterne(self):
+        spec = depuis_dict({"plans": [{"source": "a.mp4", "zoom": "auto"},
+                                      {"source": "b.mp4", "zoom": "auto"},
+                                      {"source": "c.mp4", "zoom": "auto"}]})
+        sens = [(p.zoom_de, p.zoom_vers) for p in spec.plans]
+        self.assertEqual(sens[0], (1.0, 1.08))
+        self.assertEqual(sens[1], (1.08, 1.0))     # sens inverse du précédent
+        self.assertEqual(sens[2], (1.0, 1.08))
+        self.assertTrue(all(p.zoom_actif for p in spec.plans))
+
+    def test_zoom_explicite_ignore_l_alternance(self):
+        spec = depuis_dict({"plans": [{"source": "a.mp4", "zoom": "auto"},
+                                      {"source": "b.mp4", "zoom": {"de": 1.2, "vers": 1.0}}]})
+        self.assertEqual((spec.plans[1].zoom_de, spec.plans[1].zoom_vers), (1.2, 1.0))
+
+    def test_zoom_invalide(self):
+        with self.assertRaises(ErreurSpec):
+            depuis_dict({"plans": [{"source": "a.mp4", "zoom": "beaucoup"}]})
+
     def test_cadrage_nomme(self):
         spec = depuis_dict({"plans": [{"source": "a.mp4", "cadrage": "droite"}]})
         self.assertEqual(spec.plans[0].cadrage, 1.0)
