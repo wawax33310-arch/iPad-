@@ -59,6 +59,37 @@ class TestChargement(unittest.TestCase):
         self.assertTrue(spec.musique.ducking)
 
 
+class TestSonEtStyles(unittest.TestCase):
+    def test_son_sur_un_plan(self):
+        spec = depuis_dict(base(plans=[{"source": "a.mp4", "son": "whoosh",
+                                        "son_gain_db": -3}]))
+        self.assertEqual(spec.plans[0].son, "whoosh")
+        self.assertEqual(spec.plans[0].son_gain_db, -3.0)
+
+    def test_son_inconnu(self):
+        with self.assertRaises(ErreurSpec):
+            depuis_dict(base(plans=[{"source": "a.mp4", "son": "explosion"}]))
+
+    def test_effets_sonores(self):
+        spec = depuis_dict(base(effets_sonores=[{"t": 2.0, "son": "riser", "duree": 1.5},
+                                                {"t": 0.5, "son": "impact"}]))
+        self.assertEqual([e.t for e in spec.effets_sonores], [0.5, 2.0])   # triés
+        self.assertEqual(spec.effets_sonores[1].duree, 1.5)
+
+    def test_effet_avec_fichier_maison(self):
+        spec = depuis_dict(base(effets_sonores=[{"t": 1.0, "fichier": "sons/whip.wav"}]))
+        self.assertEqual(spec.effets_sonores[0].fichier, "sons/whip.wav")
+
+    def test_effet_son_inconnu(self):
+        with self.assertRaises(ErreurSpec):
+            depuis_dict(base(effets_sonores=[{"t": 1.0, "son": "boum"}]))
+
+    def test_style_de_texte_invalide(self):
+        with self.assertRaises(ErreurSpec):
+            depuis_dict(base(plans=[{"source": "a.mp4",
+                                     "textes": [{"contenu": "x", "style": "neon"}]}]))
+
+
 class TestErreurs(unittest.TestCase):
     def test_sans_plan(self):
         with self.assertRaises(ErreurSpec):

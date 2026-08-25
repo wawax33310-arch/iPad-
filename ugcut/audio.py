@@ -7,6 +7,7 @@ from .spec import Spec
 # Cible de loudness : -14 LUFS, ce que visent TikTok / Reels / Shorts.
 LOUDNESS_CIBLE = -14.0
 DUCKING = "sidechaincompress=threshold=0.035:ratio=8:attack=15:release=280:makeup=1"
+STEREO = "aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo"
 
 
 def entrees(spec: Spec) -> list[str]:
@@ -21,15 +22,19 @@ def entrees(spec: Spec) -> list[str]:
     return args
 
 
-def graphe(spec: Spec, duree: float, *, voix_presente: bool) -> tuple[list[str], str]:
+def graphe(spec: Spec, duree: float, *, voix_presente: bool,
+           avec_effets: bool = False) -> tuple[list[str], str]:
     """Construit les chaînes audio. Retourne (chaînes, étiquette de sortie)."""
     index = 1
-    index_musique = index_voix_off = None
+    index_musique = index_voix_off = index_effets = None
     if spec.musique:
         index_musique = index
         index += 1
     if spec.voix_off:
         index_voix_off = index
+        index += 1
+    if avec_effets:
+        index_effets = index
         index += 1
 
     chaines: list[str] = []
@@ -95,6 +100,14 @@ def graphe(spec: Spec, duree: float, *, voix_presente: bool) -> tuple[list[str],
     else:
         chaines.append("[0:a]anull[mix]")
         brut = "mix"
+
+    # --- sound design -------------------------------------------------------
+    if index_effets is not None:
+        chaines.append(f"[{index_effets}:a]" + STEREO + ",volume=" +
+                       f"{spec.effets_gain_db:.2f}dB[effets]")
+        chaines.append(f"[{brut}][effets]amix=inputs=2:normalize=0:"
+                       "dropout_transition=0[avec_effets]")
+        brut = "avec_effets"
 
     chaines.append(f"[{brut}]alimiter=limit=0.95:level=disabled,"
                    f"aresample=48000,atrim=duration={duree:.3f}[aout]")

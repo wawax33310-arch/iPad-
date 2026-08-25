@@ -161,6 +161,13 @@ def entete(spec: Spec) -> str:
             blanc=couleur_ass(s.couleur), noir=couleur_ass("#000000"),
             contour=s.contour, ombre=s.ombre,
         ),
+        # Impact : mot-clé plein cadre, pour les arguments qui doivent claquer
+        "Style: Impact,{police},{taille},{blanc},{blanc},{noir},{noir},-1,0,0,0,"
+        "100,100,2,0,1,{contour},{ombre},5,50,50,50,1".format(
+            police=s.police, taille=int(s.taille * 1.45),
+            blanc=couleur_ass(s.couleur), noir=couleur_ass("#000000"),
+            contour=int(s.contour * 1.3), ombre=s.ombre + 2,
+        ),
     ]
     return "\n".join([
         "[Script Info]",
@@ -199,6 +206,18 @@ def evenements_sous_titres(spec: Spec, lignes: list[Ligne]) -> list[str]:
     return sortie
 
 
+# style du texte -> (style ASS, position par défaut, animation d'apparition)
+_ANIM_DOUCE = "\\t(0,110,\\fscx108\\fscy108)\\t(110,220,\\fscx100\\fscy100)"
+_ANIM_IMPACT = ("\\fscx140\\fscy140\\t(0,90,\\fscx97\\fscy97)"
+                "\\t(90,170,\\fscx104\\fscy104)\\t(170,240,\\fscx100\\fscy100)")
+
+STYLES_TEXTE = {
+    "sticker": ("Sticker", None, _ANIM_DOUCE, "(90,120)"),
+    "titre": ("Titre", 0.42, _ANIM_DOUCE, "(90,120)"),
+    "impact": ("Impact", 0.40, _ANIM_IMPACT, "(50,90)"),
+}
+
+
 def evenements_stickers(spec: Spec, segments) -> list[str]:
     s, p = spec.style, spec.projet
     sortie: list[str] = []
@@ -208,21 +227,17 @@ def evenements_stickers(spec: Spec, segments) -> list[str]:
             fin = min(debut + max(0.2, texte.duree), seg.fin_timeline + 0.15)
             if fin <= debut:
                 continue
-            est_titre = texte.style == "titre"
-            position = texte.position if texte.position is not None else (
-                0.42 if est_titre else s.sticker_position
-            )
+            style_ass, position_defaut, animation, fondu = STYLES_TEXTE[texte.style]
+            position = texte.position
+            if position is None:
+                position = position_defaut if position_defaut is not None else s.sticker_position
             y = int(p.hauteur * min(max(position, 0.05), 0.95))
-            # petit rebond à l'apparition : c'est ce qui fait "natif" plutôt que "monté"
-            balises = (
-                f"{{\\an5\\pos({p.largeur // 2},{y})\\fad(90,120)"
-                f"\\t(0,110,\\fscx108\\fscy108)\\t(110,220,\\fscx100\\fscy100)}}"
-            )
+            # le rebond à l'apparition : c'est ce qui fait "natif" plutôt que "monté"
+            balises = (f"{{\\an5\\pos({p.largeur // 2},{y})\\fad{fondu}{animation}}}")
             contenu = echapper(texte.contenu)
-            if s.majuscules and est_titre:
+            if s.majuscules and texte.style != "sticker":
                 contenu = contenu.upper()
-            sortie.append(_dialogue(debut, fin, "Titre" if est_titre else "Sticker",
-                                    balises + contenu, couche=2))
+            sortie.append(_dialogue(debut, fin, style_ass, balises + contenu, couche=2))
     return sortie
 
 

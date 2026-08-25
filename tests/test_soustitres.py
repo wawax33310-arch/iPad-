@@ -120,6 +120,27 @@ class TestFichierAss(unittest.TestCase):
                 contenu = fh.read()
         self.assertIn("0:00:10.50", contenu)
 
+    def test_styles_de_texte(self):
+        spec = depuis_dict({"plans": [{"source": "a.mp4"}], "sous_titres": {"actif": False}})
+        segment = self._segment([
+            Texte(contenu="haut", t=0.0, duree=1.0, style="sticker"),
+            Texte(contenu="titre", t=0.0, duree=1.0, style="titre"),
+            Texte(contenu="offert", t=0.0, duree=1.0, style="impact"),
+        ], 0.0, 2.0)
+        with tempfile.TemporaryDirectory() as dossier:
+            cible = os.path.join(dossier, "t.ass")
+            construire(spec, [segment], cible)
+            with open(cible, encoding="utf-8") as fh:
+                contenu = fh.read()
+        self.assertIn("Style: Impact,", contenu)
+        self.assertIn(",Sticker,", contenu)
+        self.assertIn(",Titre,", contenu)
+        self.assertIn(",Impact,", contenu)
+        self.assertIn("\\fscx140", contenu)          # le mot-clé entre en grand
+        self.assertIn("haut", contenu)                 # étiquette : casse d'origine
+        self.assertIn("TITRE", contenu)                # titre et impact : majuscules
+        self.assertIn("OFFERT", contenu)
+
     def test_sans_texte_aucun_fichier(self):
         spec = depuis_dict({"plans": [{"source": "a.mp4"}]})
         segment = self._segment([], 0.0, 2.0)

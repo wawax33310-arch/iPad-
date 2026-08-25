@@ -180,7 +180,13 @@ def analyser_montage(spec: Spec) -> list[Constat]:
                 "Musique sans ducking alors qu'il y a de la voix : "
                 "active `ducking: true`.")))
     elif not voix:
-        constats.append(Constat(ALERTE, "audio", "Ni voix ni musique : la vidéo est muette."))
+        sound_design = bool(spec.effets_sonores) or any(p.son for p in spec.plans)
+        if sound_design:
+            constats.append(Constat(CONSEIL, "audio", (
+                "Seul le sound design est présent : prévois la voix off, ou un son "
+                "tendance ajouté à la publication.")))
+        else:
+            constats.append(Constat(ALERTE, "audio", "Ni voix ni musique : la vidéo est muette."))
 
     # Format de sortie
     if (spec.projet.largeur, spec.projet.hauteur) != (1080, 1920):

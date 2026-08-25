@@ -9,6 +9,7 @@ import time
 from dataclasses import dataclass, field
 
 from . import audio as mix_audio
+from . import sfx as sound_design
 from . import soustitres
 from .ffmpeg import ffmpeg
 from .probe import analyser
@@ -82,12 +83,23 @@ def rendre(spec: Spec, *, sortie: str | None = None, verbose: bool = False,
         # 3. Sous-titres et étiquettes
         ass = soustitres.construire(spec, segments, os.path.join(travail, "textes.ass"))
 
-        # 4. Passe finale : incrustation + mixage + encodage de diffusion
+        # 4. Sound design : une piste unique, calée sur les plans
+        effets = sound_design.depuis_montage(spec, segments)
+        piste_effets = sound_design.construire_piste(
+            effets, duree, os.path.join(travail, "effets.wav"),
+            resoudre=spec.resoudre, verbose=verbose)
+        if piste_effets:
+            info(f"  sound design : {len(effets)} effet(s)")
+
+        # 5. Passe finale : incrustation + mixage + encodage de diffusion
         args = ["-i", timeline, *mix_audio.entrees(spec)]
+        if piste_effets:
+            args += ["-i", piste_effets]
         voix_presente = spec.voix_off is not None or any(
             seg.media.a_du_son and seg.plan.garder_son for seg in segments
         )
-        chaines, etiquette_audio = mix_audio.graphe(spec, duree, voix_presente=voix_presente)
+        chaines, etiquette_audio = mix_audio.graphe(
+            spec, duree, voix_presente=voix_presente, avec_effets=bool(piste_effets))
 
         etapes_video = []
         if ass:

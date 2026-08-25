@@ -118,6 +118,27 @@ class TestRegles(unittest.TestCase):
         self.assertIn("vitesse", codes(constats, CONSEIL))
 
 
+class TestSoundDesign(unittest.TestCase):
+    """Rushes coupés et pas de musique : le montage est muet — sauf sound design."""
+
+    MUETS = [dict(p, garder_son=False) for p in BON["plans"]]
+
+    def test_muet_sans_rien(self):
+        constats = montage(self.MUETS, BON["durees"], sous_titres=BON["sous_titres"])
+        self.assertIn("audio", codes(constats, ALERTE))
+
+    def test_sound_design_seul_est_un_conseil(self):
+        plans = [dict(self.MUETS[0], son="impact")] + self.MUETS[1:]
+        constats = montage(plans, BON["durees"], sous_titres=BON["sous_titres"])
+        self.assertNotIn("audio", codes(constats, ALERTE))
+        self.assertIn("audio", codes(constats, CONSEIL))
+
+    def test_effets_sonores_globaux_comptent_aussi(self):
+        constats = montage(self.MUETS, BON["durees"], sous_titres=BON["sous_titres"],
+                           effets_sonores=[{"t": 1.0, "son": "whoosh"}])
+        self.assertIn("audio", codes(constats, CONSEIL))
+
+
 class TestResilience(unittest.TestCase):
     def test_rush_absent_ne_plante_pas(self):
         spec = depuis_dict({"plans": [{"source": "introuvable.mp4"}]})

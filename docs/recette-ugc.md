@@ -52,6 +52,9 @@ Les règles, dans l'ordre d'importance :
   fait « monté ».
 - Le **b-roll** illustre ce qui est dit, jamais l'inverse : 1,5 à 2,5 s, son
   coupé (`garder_son: false`), et on revient au visage.
+- **Le speed ramp** (ralenti qui repart en accéléré) se monte en deux plans sur
+  la même source, sans transition : c'est le geste le plus efficace pour donner
+  de l'énergie à un plan d'action sans le raccourcir.
 - **Les transitions sont l'exception.** 90 % des raccords sont des coupes
   franches. Un `whip` avant le b-roll, un `flash` sur le packshot : deux
   effets par vidéo, pas plus, sinon ça sent la pub.
@@ -72,7 +75,21 @@ d'accessibilité, ce sont **la piste principale**.
 - Couverture visée : **plus de 80 %** de la durée. Un silence sous-titré, c'est
   un silence qu'il fallait couper.
 
-## 5. Le son
+## 5. Le sound design
+
+Trois sons suffisent, et ils se posent toujours au même endroit :
+
+| Son | Où |
+|---|---|
+| `whoosh` | Sur les coupes du hook, là où l'œil doit suivre |
+| `impact` | À chaque changement de bloc (offre, portes ouvertes, CTA) |
+| `pop` | À l'apparition d'un mot-clé plein cadre |
+| `riser` puis `impact` | Juste avant une annonce, pour créer l'attente |
+
+Niveau : −5 à −8 dB sous la voix. Un sound design qu'on remarque est un sound
+design trop fort — il doit se sentir, pas s'écouter.
+
+## 6. Le son
 
 | Élément | Cible | Pourquoi |
 |---|---|---|
@@ -84,7 +101,7 @@ d'accessibilité, ce sont **la piste principale**.
 `ugcut` applique `loudnorm` sur la voix, le ducking par compression sidechain et
 un limiteur en sortie. Tu n'as donc à régler que `gain_db`.
 
-## 6. Zones de sécurité (1080 × 1920)
+## 7. Zones de sécurité (1080 × 1920)
 
 Les interfaces des plateformes mangent les bords :
 
@@ -98,14 +115,14 @@ En pratique : tout ce qui compte tient entre **220 et 1550 px** de hauteur.
 D'où les valeurs par défaut `position: 0.74` (sous-titres, ≈ 1420 px) et
 `sticker_position: 0.15` (≈ 290 px).
 
-## 7. Le CTA
+## 8. Le CTA
 
 - **Une seule action.** « Lien en bio » OU « code UGC20 », pas les deux.
 - **Dite et écrite** en même temps.
 - 2 à 3 s, jamais plus — et surtout pas de générique de fin.
 - Le dernier plan reste vivant : on ne finit pas sur un packshot figé.
 
-## 8. Les erreurs qui reviennent
+## 9. Les erreurs qui reviennent
 
 | Erreur | Correction |
 |---|---|
@@ -117,7 +134,7 @@ D'où les valeurs par défaut `position: 0.74` (sous-titres, ≈ 1420 px) et
 | Vidéo de 70 s | Coupe le problème, garde la preuve |
 | Transitions partout | Coupes franches, deux effets maximum |
 
-## 9. Tester ses hooks
+## 10. Tester ses hooks
 
 Le corps de la vidéo se réutilise ; c'est le hook qui décide de la performance.
 Filme-en trois d'affilée, déclare-les sous `variantes:` et rends une vidéo par

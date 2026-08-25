@@ -29,7 +29,7 @@ juste désagréable.
 
 - Visage à mi-buste, yeux au **tiers supérieur** de l'image.
 - Laisse de l'air en haut et en bas : les zones utiles vont de 220 à 1550 px
-  (voir [recette-ugc.md](recette-ugc.md#6-zones-de-sécurité-1080--1920)).
+  (voir [recette-ugc.md](recette-ugc.md#7-zones-de-sécurité-1080--1920)).
 - Rien d'important dans la bande de droite (icônes TikTok).
 
 ## Tourner pour le montage

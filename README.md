@@ -115,7 +115,17 @@ rush** ; `vitesse` détermine ensuite la durée à l'écran (`duree / vitesse`).
 | `transition_duree` | `0.25` | Bridée à la moitié du plus court des deux plans |
 | `garder_son` | `true` | `false` pour un b-roll muet |
 | `volume` | `1.0` | Gain du plan |
+| `son` | — | Effet sonore joué au début du plan : `whoosh`, `impact`, `pop`, `riser`, `drop` |
+| `son_decalage` | `0` | Décale l'effet par rapport au début du plan |
 | `textes` | — | Étiquettes posées à l'image |
+
+Un **speed ramp** se fait avec deux plans consécutifs sur la même source : le
+premier au ralenti, le second accéléré, et la coupe ne se voit pas.
+
+```yaml
+- {source: rushes/padel.mov, debut: 1.80, duree: 0.45, vitesse: 0.55}
+- {source: rushes/padel.mov, debut: 2.25, duree: 1.15, vitesse: 1.70}
+```
 
 Transitions : `cut` · `fondu` · `fondu_rapide` · `fondu_lent` · `noir` ·
 `flash` · `gris` · `whip` (`whip_gauche`, `whip_droite`) · `glisse_gauche`
@@ -131,8 +141,14 @@ textes:
   - {contenu: "LIEN EN BIO", t: 0.4, duree: 2.0, style: titre, position: 0.35}
 ```
 
-`t` est relatif au **début du plan**. `style` vaut `sticker` (pavé plein) ou
-`titre` (grand texte à contour). `position` est une fraction de la hauteur.
+`t` est relatif au **début du plan**. `position` est une fraction de la hauteur.
+`style` vaut :
+
+| Style | Rendu |
+|---|---|
+| `sticker` | Pavé plein, en haut — le nom d'une activité, une date |
+| `titre` | Grand texte à contour, plein cadre |
+| `impact` | Mot-clé très grand, qui entre en surdimension et rebondit — pour un argument qui doit claquer |
 
 ### `sous_titres`
 
@@ -183,6 +199,28 @@ voix_off:               # remplace le son des plans si présente
 La musique boucle si elle est plus courte que le montage. La voix est
 normalisée à −14 LUFS (la cible TikTok / Reels / Shorts) et l'ensemble passe
 par un limiteur.
+
+### `effets_sonores`
+
+Le sound design est synthétisé par ffmpeg : rien à télécharger.
+
+```yaml
+effets_gain_db: -5          # niveau global des effets
+effets_sonores:
+  - {t: 14.25, son: riser, duree: 0.85}   # montée avant une révélation
+  - {t: 30.0, fichier: sons/whip.wav}     # ou ton propre fichier
+```
+
+| Son | Usage |
+|---|---|
+| `whoosh` | Souffle sur une coupe rapide |
+| `impact` | Basse courte : ponctue un changement de bloc |
+| `pop` | Clic bref sur l'apparition d'un mot |
+| `riser` | Montée en tension avant une annonce |
+| `drop` | Descente grave : ferme un bloc |
+
+Pour caler un effet sur un plan, préfère `son:` dans le plan — c'est la
+timeline qui calcule l'instant, pas toi.
 
 ### `variantes`
 

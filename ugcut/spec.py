@@ -10,7 +10,10 @@ import os
 from dataclasses import dataclass, field
 from typing import Any, Iterable
 
+from .sfx import SONS, Effet
+
 RECADRAGES = {"remplir", "flou", "ajuster"}
+STYLES_TEXTE = {"sticker", "titre", "impact"}
 MODES_SOUS_TITRES = {"mot_a_mot", "ligne"}
 
 # transition -> nom xfade ; "cut" = coupe franche (pas de xfade)
@@ -43,6 +46,7 @@ ALIAS = {
     "zoom": "zoom", "from": "de", "to": "vers", "transition": "transition",
     "keep_audio": "garder_son", "volume": "volume", "role": "role",
     "texts": "textes", "text": "contenu", "at": "t",
+    "sound": "son", "sound_effects": "effets_sonores", "sfx": "effets_sonores",
     # audio
     "music": "musique", "gain_db": "gain_db", "voiceover": "voix_off",
     "offset": "decalage", "fade_in": "fondu_entree", "fade_out": "fondu_sortie",
@@ -138,6 +142,9 @@ class Plan:
     volume: float = 1.0
     role: str = ""                  # hook | probleme | solution | preuve | cta | broll
     textes: list[Texte] = field(default_factory=list)
+    son: str = ""                   # effet sonore joué au début du plan
+    son_gain_db: float = 0.0
+    son_decalage: float = 0.0
 
     @property
     def zoom_actif(self) -> bool:
@@ -185,6 +192,8 @@ class Spec:
     musique: Musique | None = None
     voix_off: VoixOff | None = None
     variantes: list[Plan] = field(default_factory=list)
+    effets_sonores: list[Effet] = field(default_factory=list)
+    effets_gain_db: float = -6.0
     racine: str = "."
     chemin: str = ""
 
@@ -208,12 +217,16 @@ def _lire_textes(brut: Iterable[Any], contexte: str) -> list[Texte]:
         contenu = item.get("contenu")
         if not contenu:
             raise ErreurSpec(f"{contexte}textes[{i}] : clé `contenu` manquante")
+        style = str(item.get("style", "sticker")).lower()
+        if style not in STYLES_TEXTE:
+            raise ErreurSpec(f"{contexte}textes[{i}].style doit être : "
+                             f"{', '.join(sorted(STYLES_TEXTE))}")
         textes.append(Texte(
             contenu=str(contenu),
             t=_flottant(item, "t", 0.0, contexte=contexte) or 0.0,
             duree=_flottant(item, "duree", 1.6, contexte=contexte) or 1.6,
             position=_flottant(item, "position", None, contexte=contexte),
-            style=str(item.get("style", "sticker")),
+            style=style,
         ))
     return textes
 
@@ -247,6 +260,10 @@ def _lire_plan(brut: Any, contexte: str) -> Plan:
         cadrage = {"gauche": 0.0, "haut": 0.0, "centre": 0.5,
                    "droite": 1.0, "bas": 1.0}.get(cadrage.lower(), 0.5)
 
+    son = str(brut.get("son", "")).lower()
+    if son and son not in SONS:
+        raise ErreurSpec(f"{contexte}son inconnu : {son!r}. Au choix : {', '.join(sorted(SONS))}")
+
     vitesse = _flottant(brut, "vitesse", 1.0, contexte=contexte) or 1.0
     if not 0.25 <= vitesse <= 4.0:
         raise ErreurSpec(f"{contexte}vitesse doit être entre 0.25 et 4.0 (reçu {vitesse})")
@@ -268,6 +285,9 @@ def _lire_plan(brut: Any, contexte: str) -> Plan:
         volume=_flottant(brut, "volume", 1.0, contexte=contexte) or 1.0,
         role=str(brut.get("role", "")).lower(),
         textes=_lire_textes(brut.get("textes"), contexte),
+        son=son,
+        son_gain_db=_flottant(brut, "son_gain_db", 0.0, contexte=contexte) or 0.0,
+        son_decalage=_flottant(brut, "son_decalage", 0.0, contexte=contexte) or 0.0,
     )
 
 
@@ -294,6 +314,32 @@ def _lire_sous_titres(brut: Any) -> SousTitres:
         lignes=sorted(lignes, key=lambda l: l.debut),
         actif=bool(brut.get("actif", True)),
     )
+
+
+def _lire_effets(brut: Any) -> list[Effet]:
+    """Effets sonores posés à un instant absolu de la timeline."""
+    if not brut:
+        return []
+    if not isinstance(brut, list):
+        raise ErreurSpec("effets_sonores doit être une liste")
+    effets: list[Effet] = []
+    for i, item in enumerate(brut):
+        contexte = f"effets_sonores[{i}]."
+        if not isinstance(item, dict):
+            raise ErreurSpec(f"{contexte[:-1]} doit être un objet {{t, son}}")
+        son = str(item.get("son", "whoosh")).lower()
+        fichier = item.get("fichier")
+        if not fichier and son not in SONS:
+            raise ErreurSpec(f"{contexte}son inconnu : {son!r}. "
+                             f"Au choix : {', '.join(sorted(SONS))}")
+        effets.append(Effet(
+            t=_flottant(item, "t", 0.0, contexte=contexte) or 0.0,
+            son=son,
+            fichier=str(fichier) if fichier else None,
+            duree=_flottant(item, "duree", None, contexte=contexte),
+            gain_db=_flottant(item, "gain_db", 0.0, contexte=contexte) or 0.0,
+        ))
+    return sorted(effets, key=lambda e: e.t)
 
 
 def charger(chemin: str) -> Spec:
@@ -399,6 +445,8 @@ def depuis_dict(brut: dict, *, racine: str = ".", chemin: str = "") -> Spec:
         musique=musique,
         voix_off=voix_off,
         variantes=variantes,
+        effets_sonores=_lire_effets(brut.get("effets_sonores")),
+        effets_gain_db=_flottant(brut, "effets_gain_db", -6.0) or -6.0,
         racine=racine,
         chemin=chemin,
     )
