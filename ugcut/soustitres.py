@@ -219,7 +219,7 @@ STYLES_TEXTE = {
 
 
 def evenements_stickers(spec: Spec, segments) -> list[str]:
-    s, p = spec.style, spec.projet
+    """Textes attachés à un plan : le repère temporel est relatif au plan."""
     sortie: list[str] = []
     for seg in segments:
         for texte in seg.plan.textes:
@@ -227,18 +227,33 @@ def evenements_stickers(spec: Spec, segments) -> list[str]:
             fin = min(debut + max(0.2, texte.duree), seg.fin_timeline + 0.15)
             if fin <= debut:
                 continue
-            style_ass, position_defaut, animation, fondu = STYLES_TEXTE[texte.style]
-            position = texte.position
-            if position is None:
-                position = position_defaut if position_defaut is not None else s.sticker_position
-            y = int(p.hauteur * min(max(position, 0.05), 0.95))
-            # le rebond à l'apparition : c'est ce qui fait "natif" plutôt que "monté"
-            balises = (f"{{\\an5\\pos({p.largeur // 2},{y})\\fad{fondu}{animation}}}")
-            contenu = echapper(texte.contenu)
-            if s.majuscules and texte.style != "sticker":
-                contenu = contenu.upper()
-            sortie.append(_dialogue(debut, fin, style_ass, balises + contenu, couche=2))
+            sortie.append(_evenement_texte(spec, texte, debut, fin))
     return sortie
+
+
+def _evenement_texte(spec: Spec, texte, debut: float, fin: float) -> str:
+    s, p = spec.style, spec.projet
+    style_ass, position_defaut, animation, fondu = STYLES_TEXTE[texte.style]
+    position = texte.position
+    if position is None:
+        position = position_defaut if position_defaut is not None else s.sticker_position
+    y = int(p.hauteur * min(max(position, 0.05), 0.95))
+    balises = f"{{\\an5\\pos({p.largeur // 2},{y})\\fad{fondu}{animation}}}"
+    contenu = echapper(texte.contenu)
+    if s.majuscules and texte.style != "sticker":
+        contenu = contenu.upper()
+    return _dialogue(debut, fin, style_ass, balises + contenu, couche=2)
+
+
+def evenements_textes(spec: Spec) -> list[str]:
+    """Textes posés à un instant absolu du montage, sans lien avec un plan.
+
+    C'est ce qu'il faut pour une accroche qui doit tenir sur plusieurs plans.
+    """
+    return [
+        _evenement_texte(spec, texte, texte.t, texte.t + max(0.2, texte.duree))
+        for texte in spec.textes
+    ]
 
 
 def lignes_sous_titres(spec: Spec) -> list[Ligne]:
@@ -258,6 +273,7 @@ def construire(spec: Spec, segments, cible: str) -> str | None:
     """Écrit le .ass complet. Retourne None s'il n'y a rien à incruster."""
     evenements = evenements_sous_titres(spec, lignes_sous_titres(spec))
     evenements += evenements_stickers(spec, segments)
+    evenements += evenements_textes(spec)
     if not evenements:
         return None
     with open(cible, "w", encoding="utf-8") as fh:

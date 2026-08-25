@@ -21,6 +21,9 @@ Scripts de voix off correspondants : `voix-off-v2.md` et `voix-off.md`.
 | Portes ouvertes | 28,6 → 40,4 s | « TU PRÉFÈRES TESTER ? », puis samedi 12 septembre, 9h-18h, 100 % gratuit, initiations, animations |
 | CTA | 40,4 → 44,4 s | Ralenti 0,5× : « JOURNÉE PORTES OUVERTES / 12 SEPTEMBRE · 100 % GRATUIT », « INSCRIS-TOI », le site en sous-titre |
 
+L'accroche du hook est déclarée à la racine du montage (`textes:`) et non sur
+un plan : un texte de plan serait coupé au bout de 0,6 s.
+
 Pas de sous-titres : les étiquettes d'activité et les mots-clés plein cadre
 portent seuls le message. Les lignes restent dans `montage-v2.yaml` sous
 `sous_titres.actif: false` — elles servent à caler la voix off, et il suffit de

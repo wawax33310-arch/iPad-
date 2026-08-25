@@ -141,6 +141,22 @@ class TestFichierAss(unittest.TestCase):
         self.assertIn("TITRE", contenu)                # titre et impact : majuscules
         self.assertIn("OFFERT", contenu)
 
+    def test_texte_de_timeline_traverse_les_plans(self):
+        """Une accroche posée sur la timeline n'est pas bornée par un plan."""
+        spec = depuis_dict({
+            "plans": [{"source": "a.mp4"}],
+            "sous_titres": {"actif": False},
+            "textes": [{"contenu": "8 activités", "t": 0.15, "duree": 2.7, "style": "impact"}],
+        })
+        segment = self._segment([], 0.0, 0.6)      # plan bien plus court que le texte
+        with tempfile.TemporaryDirectory() as dossier:
+            cible = os.path.join(dossier, "t.ass")
+            construire(spec, [segment], cible)
+            with open(cible, encoding="utf-8") as fh:
+                contenu = fh.read()
+        self.assertIn("0:00:00.15,0:00:02.85", contenu)
+        self.assertIn("8 ACTIVITÉS", contenu)
+
     def test_sans_texte_aucun_fichier(self):
         spec = depuis_dict({"plans": [{"source": "a.mp4"}]})
         segment = self._segment([], 0.0, 2.0)

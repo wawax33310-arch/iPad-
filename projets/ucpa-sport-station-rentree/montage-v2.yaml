@@ -27,6 +27,12 @@ style:
   sticker_taille: 58
   sticker_position: 0.135
 
+# Accroche du hook : tenue sur les 3 s, donc déclarée sur la timeline
+# et non sur un plan (un texte de plan serait coupé au bout de 0,6 s).
+textes:
+  - {contenu: "8 ACTIVITÉS\n1 SEUL ENDROIT", t: 0.15, duree: 2.70, style: impact,
+     position: 0.38}
+
 effets_gain_db: -5
 effets_sonores:
   - {t: 14.25, son: riser, duree: 0.85}      # montée avant la révélation de l'offre
@@ -37,8 +43,7 @@ effets_sonores:
 plans:
   # ══ HOOK 0 → 3 s : cinq plans, cinq mondes, une coupe toutes les 0,6 s ══════
   - {id: h1, role: hook, source: rushes/IMG_4908.mov, debut: 2.2, duree: 0.6,
-     garder_son: false, zoom: {de: 1.0, vers: 1.06}, son: impact,
-     textes: [{contenu: "BORDEAUX", t: 0.0, duree: 0.55}]}
+     garder_son: false, zoom: {de: 1.0, vers: 1.06}, son: impact}
   - {id: h2, source: rushes/IMG_8997.mov, debut: 0.9, duree: 0.6, garder_son: false, son: whoosh}
   - {id: h3, source: rushes/IMG_9875.mov, debut: 1.2, duree: 0.6, garder_son: false, son: whoosh}
   - {id: h4, source: rushes/IMG_6319.mov, debut: 3.0, duree: 0.6, garder_son: false, son: whoosh}

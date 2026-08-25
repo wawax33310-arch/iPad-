@@ -150,6 +150,17 @@ textes:
 | `titre` | Grand texte à contour, plein cadre |
 | `impact` | Mot-clé très grand, qui entre en surdimension et rebondit — pour un argument qui doit claquer |
 
+### `textes` (accroche posée sur la timeline)
+
+Les `textes:` d'un plan sont bornés par ce plan. Pour une accroche qui doit
+tenir sur plusieurs plans — un hook en coupes rapides, par exemple — déclare-la
+à la racine du montage : le repère `t` y est absolu.
+
+```yaml
+textes:
+  - {contenu: "8 ACTIVITÉS\n1 SEUL ENDROIT", t: 0.15, duree: 2.7, style: impact}
+```
+
 ### `sous_titres`
 
 ```yaml
