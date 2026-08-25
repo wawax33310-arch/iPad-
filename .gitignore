@@ -1,0 +1,16 @@
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+build/
+dist/
+
+# rushes et exports : jamais dans git
+rushes/
+sortie/
+demo/
+*.mp4
+*.mov
+*.mp3
+*.m4a
+*.wav

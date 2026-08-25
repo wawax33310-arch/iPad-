@@ -1,0 +1,131 @@
+# Exemple complet : UGC produit de ~21 s, structure hook / problème / solution
+# / preuve / CTA, avec deux variantes de hook pour le test A/B.
+#
+#   ugcut check     exemples/montage-produit.yaml
+#   ugcut render    exemples/montage-produit.yaml
+#   ugcut variantes exemples/montage-produit.yaml
+#
+# Les rushes ne sont pas versionnés : remplace les chemins par les tiens.
+
+projet:
+  nom: serum-routine
+  largeur: 1080
+  hauteur: 1920
+  fps: 30
+  sortie: sortie/serum-routine.mp4
+  duree_max: 45
+
+style:
+  police: Liberation Sans
+  taille: 92
+  couleur: "#FFFFFF"
+  couleur_active: "#FFE600"
+  contour: 8
+  position: 0.74
+  mots_par_ecran: 3
+  majuscules: true
+  mode: mot_a_mot
+  sticker_position: 0.15
+
+musique:
+  fichier: rushes/musique-lofi.mp3
+  gain_db: -21
+  ducking: true
+  fondu_sortie: 1.5
+
+plans:
+  - id: hook
+    role: hook
+    source: rushes/hook-tiraillement.mov
+    debut: 0.8               # on entre après le silence de départ
+    duree: 2.0
+    zoom: {de: 1.0, vers: 1.06}
+    textes:
+      - {contenu: "3 SEMAINES DE TEST", t: 0.0, duree: 1.9}
+
+  - id: probleme
+    role: probleme
+    source: rushes/probleme-creme.mov
+    debut: 2.4
+    duree: 3.2
+
+  - id: broll-miroir
+    role: broll
+    source: rushes/broll-miroir.mov     # rush 16:9 : remonté sur fond flouté
+    debut: 1.0
+    duree: 2.0
+    recadrage: flou
+    garder_son: false
+    transition: whip
+    transition_duree: 0.2
+
+  - id: application
+    role: solution
+    source: rushes/application.mov
+    debut: 0.5
+    duree: 4.0
+    cadrage: droite          # le visage est à droite du cadre 16:9
+
+  - id: broll-texture
+    role: broll
+    source: rushes/broll-texture.mov
+    duree: 2.2
+    vitesse: 1.25            # geste lent : on le resserre un peu
+    garder_son: false
+    transition: fondu
+    transition_duree: 0.25
+
+  - id: preuve
+    role: preuve
+    source: rushes/preuve-3-semaines.mov
+    debut: 1.2
+    duree: 3.5
+    zoom: {de: 1.05, vers: 1.0}
+
+  - id: avant-apres
+    source: rushes/avant-apres.jpg
+    duree: 2.5
+    recadrage: flou
+    transition: flash
+    transition_duree: 0.2
+    textes:
+      - {contenu: "SANS FILTRE", t: 0.3, duree: 2.0}
+
+  - id: cta
+    role: cta
+    source: rushes/cta.mov
+    debut: 0.4
+    duree: 2.6
+    zoom: {de: 1.0, vers: 1.04}
+    textes:
+      - {contenu: "CODE PEAU20", t: 0.5, duree: 2.0, style: titre, position: 0.34}
+
+sous_titres:
+  # Alternative : `fichier: rushes/voix.srt` (export Whisper, CapCut, etc.)
+  lignes:
+    - {debut: 0.05, fin: 2.00, texte: "Ma peau tirait tous les matins"}
+    - {debut: 2.10, fin: 5.10, texte: "Trois couches de crème, aucun changement"}
+    - {debut: 5.20, fin: 6.95, texte: "Jusqu'à ce test"}
+    - {debut: 7.05, fin: 10.90, texte: "Deux gouttes le matin sur peau humide, c'est tout"}
+    - {debut: 11.00, fin: 12.90, texte: "La texture pénètre en dix secondes"}
+    - {debut: 13.05, fin: 16.35, texte: "Trois semaines après plus aucun tiraillement"}
+    - {debut: 16.45, fin: 18.70, texte: "Et ça c'est sans filtre"}
+    - {debut: 18.85, fin: 21.25, texte: "Le lien est en bio, code PEAU20"}
+
+# Un fichier de sortie par variante : sortie/serum-routine-<id>.mp4
+variantes:
+  - id: hook-erreur
+    source: rushes/hook-erreur.mov
+    debut: 0.6
+    duree: 2.0
+    zoom: {de: 1.0, vers: 1.06}
+    textes:
+      - {contenu: "ARRÊTE ÇA LE MATIN", t: 0.0, duree: 1.9}
+
+  - id: hook-question
+    source: rushes/hook-question.mov
+    debut: 1.1
+    duree: 2.0
+    zoom: {de: 1.0, vers: 1.06}
+    textes:
+      - {contenu: "TA PEAU TIRE ?", t: 0.0, duree: 1.9}

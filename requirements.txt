@@ -1,0 +1,3 @@
+PyYAML>=6.0
+# Facultatif : fournit un binaire ffmpeg statique si le système n'en a pas.
+# imageio-ffmpeg>=0.4

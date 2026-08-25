@@ -1,0 +1,100 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Montage UGC — remplace les chemins, garde la structure.
+# Rendu   : python -m ugcut render montage.yaml
+# Contrôle: python -m ugcut check montage.yaml
+# ─────────────────────────────────────────────────────────────────────────────
+
+projet:
+  nom: ma-video
+  largeur: 1080           # 9:16 natif TikTok / Reels / Shorts
+  hauteur: 1920
+  fps: 30
+  sortie: sortie/ma-video.mp4
+  duree_max: 45           # sert au contrôle, ne coupe rien
+
+style:
+  police: Liberation Sans # nom de famille de police installée (ou voir dossier_polices)
+  taille: 92
+  couleur: "#FFFFFF"
+  couleur_active: "#FFE600"   # couleur du mot en cours
+  contour: 8                  # contour noir : lisibilité sur fond clair
+  ombre: 3
+  position: 0.74              # 0 = haut, 1 = bas. Reste entre 0.55 et 0.84.
+  mots_par_ecran: 3
+  majuscules: true
+  mode: mot_a_mot             # mot_a_mot | ligne
+  sticker_position: 0.15
+  # dossier_polices: polices  # pour une police de marque non installée
+
+# Musique de fond (facultatif). Elle boucle si elle est plus courte que la vidéo.
+musique:
+  fichier: rushes/musique.mp3
+  gain_db: -20            # -24 à -12 : la voix doit toujours passer devant
+  ducking: true           # baisse automatiquement la musique sous la voix
+  fondu_sortie: 1.2
+
+# Voix off (facultatif). Si présente, elle remplace le son des plans.
+# voix_off:
+#   fichier: rushes/voix.m4a
+#   decalage: 0.0
+
+plans:
+  # 1. HOOK — 1 à 2 s, on rentre dans le vif. Coupe le silence avant la 1re syllabe.
+  - id: hook
+    role: hook
+    source: rushes/hook.mov
+    debut: 0.0            # point d'entrée dans le rush
+    duree: 2.0            # ou `fin:` pour un point de sortie absolu
+    zoom: {de: 1.0, vers: 1.06}
+    textes:
+      - {contenu: "TON ACCROCHE ICI", t: 0.0, duree: 2.0}
+
+  # 2. PROBLÈME — ce que vivait la personne avant.
+  - id: probleme
+    role: probleme
+    source: rushes/probleme.mov
+    debut: 1.2
+    duree: 3.0
+
+  # 3. B-ROLL — un plan d'illustration. `flou` remonte un 16:9 en 9:16.
+  - id: broll
+    role: broll
+    source: rushes/broll.mov
+    duree: 2.0
+    recadrage: flou       # remplir | flou | ajuster
+    garder_son: false
+    transition: whip      # cut | fondu | flash | whip | zoom | glisse_gauche ...
+    transition_duree: 0.22
+
+  # 4. SOLUTION — le produit en usage, pas en vitrine.
+  - id: solution
+    role: solution
+    source: rushes/produit.mov
+    duree: 4.0
+    zoom: {de: 1.05, vers: 1.0}
+
+  # 5. PREUVE — résultat, chiffre, avant/après.
+  - id: preuve
+    role: preuve
+    source: rushes/preuve.mov
+    duree: 3.0
+
+  # 6. CTA — une seule action, dite ET écrite.
+  - id: cta
+    role: cta
+    source: rushes/cta.mov
+    duree: 2.5
+    textes:
+      - {contenu: "LIEN EN BIO", t: 0.3, duree: 2.0, style: titre, position: 0.35}
+
+# Sous-titres : soit un .srt (whisper, CapCut, etc.), soit des lignes à la main.
+sous_titres:
+  # fichier: rushes/voix.srt
+  lignes:
+    - {debut: 0.0, fin: 2.0, texte: "Ton accroche, dite en une phrase"}
+    - {debut: 2.1, fin: 5.1, texte: "Le problème que tout le monde reconnaît"}
+
+# Variantes de hook pour tester (A/B) : un fichier de sortie par variante.
+# variantes:
+#   - {id: hook-question, source: rushes/hook2.mov, duree: 2.0,
+#      textes: [{contenu: "ET SI C'ÉTAIT ÇA ?", t: 0, duree: 2.0}]}

@@ -1,0 +1,97 @@
+# Montage de démonstration — généré par `python -m ugcut demo`.
+# Les rushes sont des images de synthèse : la structure, elle, est celle
+# d'une vraie UGC (hook / problème / solution / preuve / CTA).
+
+projet:
+  nom: demo-ugc
+  largeur: 1080
+  hauteur: 1920
+  fps: 30
+  sortie: sortie/demo-ugc.mp4
+  duree_max: 45
+
+style:
+  police: Liberation Sans
+  taille: 92
+  couleur: "#FFFFFF"
+  couleur_active: "#FFE600"
+  contour: 8
+  ombre: 3
+  position: 0.74          # sous-titres au-dessus de l'UI TikTok
+  mots_par_ecran: 3
+  majuscules: true
+  mode: mot_a_mot
+  sticker_position: 0.15
+
+musique:
+  fichier: rushes/musique.mp3
+  gain_db: -20
+  ducking: true           # la musique s'efface sous la voix
+  fondu_sortie: 1.2
+
+plans:
+  - id: hook
+    role: hook
+    source: rushes/hook.mp4
+    debut: 0.2
+    duree: 2.2
+    zoom: {de: 1.0, vers: 1.06}     # punch-in lent : ça retient l'œil
+    textes:
+      - {contenu: "30 JOURS DE TEST", t: 0.0, duree: 2.0}
+
+  - id: probleme
+    role: probleme
+    source: rushes/probleme.mp4
+    debut: 0.5
+    duree: 3.0
+
+  - id: broll
+    role: broll
+    source: rushes/broll_paysage.mp4
+    debut: 0.4
+    duree: 2.5
+    recadrage: flou          # rush 16:9 remonté en 9:16 sur fond flouté
+    garder_son: false
+    transition: whip
+    transition_duree: 0.22
+
+  - id: solution
+    role: solution
+    source: rushes/produit.mp4
+    debut: 0.3
+    duree: 4.0
+    zoom: {de: 1.05, vers: 1.0}
+
+  - id: packshot
+    source: rushes/packshot.png
+    duree: 2.0
+    recadrage: flou
+    transition: zoom
+    transition_duree: 0.3
+    textes:
+      - {contenu: "-20% avec UGC20", t: 0.2, duree: 1.6}
+
+  - id: preuve
+    role: preuve
+    source: rushes/probleme.mp4
+    debut: 4.0
+    duree: 3.0
+
+  - id: cta
+    role: cta
+    source: rushes/produit.mp4
+    debut: 4.5
+    duree: 3.0
+    zoom: {de: 1.0, vers: 1.04}
+    textes:
+      - {contenu: "LIEN EN BIO", t: 0.4, duree: 2.4, style: titre, position: 0.35}
+
+sous_titres:
+  lignes:
+    - {debut: 0.10, fin: 2.15, texte: "30 jours de test, verdict direct"}
+    - {debut: 2.30, fin: 5.10, texte: "Avant je perdais 20 minutes chaque matin"}
+    - {debut: 5.30, fin: 7.40, texte: "et ça se voyait"}
+    - {debut: 7.55, fin: 11.35, texte: "Là j'ai changé une seule chose dans ma routine"}
+    - {debut: 11.50, fin: 13.10, texte: "et tout a suivi"}
+    - {debut: 13.25, fin: 16.05, texte: "Trois semaines après on me demande ce que j'utilise"}
+    - {debut: 16.25, fin: 19.05, texte: "Le lien est en bio, code UGC20"}

@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ugcut"
+version = "0.1.0"
+description = "Montage de vidéos UGC verticales (9:16) piloté par un fichier de montage"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = ["PyYAML>=6.0"]
+
+[project.scripts]
+ugcut = "ugcut.cli:main"
+
+[project.optional-dependencies]
+# ffmpeg statique embarqué, si le système n'en fournit pas
+ffmpeg = ["imageio-ffmpeg>=0.4"]
+
+[tool.setuptools]
+packages = ["ugcut"]
+
+[tool.setuptools.package-data]
+ugcut = ["modeles/*.yaml"]
