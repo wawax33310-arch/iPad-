@@ -1,0 +1,141 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# UCPA Sport Station Bordeaux — Réel rentrée 2025
+# Trois messages : découverte du centre → offre de rentrée → Journée Portes Ouvertes
+# Cible : 45 s max, montage très dynamique (plan moyen ~1,5 s)
+#
+#   ugcut check  montage.yaml
+#   ugcut render montage.yaml
+#
+# Son : les rushes sont coupés (ambiances hétérogènes sur 28 plans).
+# La vidéo est prête à recevoir la voix off — voir voix-off.md, puis décommenter
+# le bloc `voix_off:` ci-dessous et ajouter `musique:`.
+# ─────────────────────────────────────────────────────────────────────────────
+
+projet:
+  nom: ucpa-rentree
+  largeur: 1080
+  hauteur: 1920
+  fps: 30
+  sortie: sortie/ucpa-rentree.mp4
+  duree_max: 45
+
+style:
+  police: Liberation Sans
+  taille: 84
+  couleur: "#FFFFFF"
+  couleur_active: "#FF6A13"      # orange UCPA
+  contour: 8
+  ombre: 3
+  position: 0.76
+  mots_par_ecran: 3
+  majuscules: true
+  mode: mot_a_mot
+  sticker_taille: 58
+  sticker_couleur: "#111111"
+  sticker_fond: "#FFFFFF"
+  sticker_position: 0.135
+
+# voix_off:
+#   fichier: rushes/voix.m4a
+# musique:
+#   fichier: rushes/musique.mp3
+#   gain_db: -20
+#   ducking: true
+#   fondu_sortie: 1.5
+
+plans:
+  # ── A. Le lieu ────────────────────────────────────────────────────────────
+  - {id: a1-escalade-voie, role: hook, source: rushes/IMG_9413.mov, debut: 1.5, duree: 1.4,
+     garder_son: false, zoom: {de: 1.0, vers: 1.10},
+     textes: [{contenu: "BORDEAUX", t: 0.0, duree: 1.3}]}
+  - {id: a2-padel-rooftop, source: rushes/IMG_7307.mov, debut: 1.6, duree: 1.4, garder_son: false}
+
+  # ── B. Les activités (les étiquettes portent le message, pas de sous-titres) ─
+  - {id: b1-escalade, source: rushes/IMG_4908.mov, debut: 1.8, duree: 1.3, garder_son: false,
+     textes: [{contenu: "ESCALADE", t: 0.0, duree: 1.2}]}
+  - {id: b2-padel, source: rushes/IMG_8997.mov, debut: 0.5, duree: 1.3, garder_son: false,
+     textes: [{contenu: "PADEL", t: 0.0, duree: 1.2}]}
+  - {id: b3-squash, source: rushes/IMG_9195.mov, debut: 0.6, duree: 1.3, garder_son: false,
+     textes: [{contenu: "SQUASH", t: 0.0, duree: 1.2}]}
+  - {id: b4-golf, source: rushes/IMG_8686.mov, debut: 2.0, duree: 1.3, garder_son: false,
+     textes: [{contenu: "GOLF", t: 0.0, duree: 1.2}]}
+  - {id: b5-fitness, source: rushes/IMG_7245.mov, debut: 3.0, duree: 1.3, garder_son: false,
+     textes: [{contenu: "FITNESS", t: 0.0, duree: 1.2}]}
+  - {id: b6-muscu, source: rushes/IMG_5855.mov, debut: 0.4, duree: 1.3, garder_son: false,
+     textes: [{contenu: "MUSCU & CROSS TRAINING", t: 0.0, duree: 1.2}]}
+  - {id: b7-resto, source: rushes/IMG_7116.mov, debut: 0.8, duree: 1.4, garder_son: false,
+     textes: [{contenu: "RESTO", t: 0.0, duree: 1.3}]}
+  - {id: b8-rooftop, source: rushes/IMG_9875.mov, debut: 0.8, duree: 1.5, garder_son: false,
+     textes: [{contenu: "ROOFTOP", t: 0.0, duree: 1.4}]}
+
+  # ── C. Le nom du lieu ─────────────────────────────────────────────────────
+  - {id: c1-signature, source: rushes/IMG_9746.mov, debut: 1.0, duree: 2.0, garder_son: false,
+     transition: fondu, transition_duree: 0.25, zoom: {de: 1.06, vers: 1.0},
+     textes: [{contenu: "UCPA SPORT STATION", t: 0.1, duree: 1.8, style: titre, position: 0.36}]}
+
+  # ── D. L'offre de rentrée ─────────────────────────────────────────────────
+  - {id: d1-offre, source: rushes/IMG_6319.mov, debut: 2.5, duree: 2.2, garder_son: false,
+     transition: flash, transition_duree: 0.2, zoom: {de: 1.0, vers: 1.05},
+     textes: [{contenu: "OFFRE DE RENTRÉE", t: 0.1, duree: 2.0, style: titre, position: 0.36}]}
+  - {id: d2-sans-engagement, source: rushes/IMG_9438.mov, debut: 0.3, duree: 1.7, garder_son: false,
+     textes: [{contenu: "SANS ENGAGEMENT", t: 0.0, duree: 1.6}]}
+  - {id: d3-prix, source: rushes/IMG_5253.mov, debut: 0.7, duree: 1.7, garder_son: false,
+     textes: [{contenu: "AU PRIX DE L'ENGAGEMENT", t: 0.0, duree: 1.6}]}
+  - {id: d4-a-vie, source: rushes/IMG_3620.mov, debut: 2.0, duree: 1.6, garder_son: false,
+     textes: [{contenu: "À VIE", t: 0.0, duree: 1.5}]}
+  - {id: d5-frais, source: rushes/IMG_6332.mov, debut: 3.0, duree: 1.4, garder_son: false,
+     textes: [{contenu: "FRAIS DE DOSSIER OFFERTS", t: 0.0, duree: 1.3}]}
+  - {id: d6-economie, source: rushes/IMG_7368.mov, debut: 0.4, duree: 1.3, garder_son: false,
+     textes: [{contenu: "-40 €", t: 0.0, duree: 1.2, style: titre, position: 0.38}]}
+  - {id: d7-date, source: rushes/IMG_7244.mov, debut: 2.0, duree: 1.7, garder_son: false,
+     textes: [{contenu: "JUSQU'AU 30 SEPTEMBRE", t: 0.0, duree: 1.6}]}
+  - {id: d8-packs, source: rushes/IMG_9134.mov, debut: 3.0, duree: 1.8, garder_son: false,
+     textes: [{contenu: "HEURES PLEINES OU CREUSES", t: 0.0, duree: 1.7}]}
+
+  # ── E. La bascule ─────────────────────────────────────────────────────────
+  - {id: e1-bascule, source: rushes/IMG_9775.mov, debut: 0.4, duree: 2.0, garder_son: false,
+     transition: fondu, transition_duree: 0.25, zoom: {de: 1.0, vers: 1.05},
+     textes: [{contenu: "ENVIE D'ESSAYER AVANT ?", t: 0.1, duree: 1.8, style: titre, position: 0.36}]}
+
+  # ── F. La Journée Portes Ouvertes ─────────────────────────────────────────
+  - {id: f1-jpo, source: rushes/IMG_9391.mov, debut: 3.0, duree: 2.0, garder_son: false,
+     transition: flash, transition_duree: 0.2,
+     textes: [{contenu: "SAMEDI 12 SEPTEMBRE", t: 0.0, duree: 1.9},
+              {contenu: "PORTES OUVERTES", t: 0.1, duree: 1.8, style: titre, position: 0.38}]}
+  - {id: f2-horaires, source: rushes/IMG_3937.mov, debut: 1.4, duree: 1.4, garder_son: false,
+     textes: [{contenu: "9H - 18H", t: 0.0, duree: 1.3}]}
+  - {id: f3-initiations, source: rushes/IMG_6982.mov, debut: 3.0, duree: 1.4, garder_son: false,
+     textes: [{contenu: "SUR INSCRIPTION", t: 0.0, duree: 1.3}]}
+  - {id: f4-photobooth, source: rushes/IMG_2477.mov, debut: 0.5, duree: 1.3, garder_son: false,
+     textes: [{contenu: "PHOTOBOOTH", t: 0.0, duree: 1.2}]}
+  - {id: f5-enfants, source: rushes/IMG_7026.mov, debut: 1.8, duree: 1.3, garder_son: false,
+     textes: [{contenu: "ANIMATIONS ENFANTS", t: 0.0, duree: 1.2}]}
+  - {id: f6-jeux, source: rushes/IMG_0957.mov, debut: 1.6, duree: 1.3, garder_son: false,
+     textes: [{contenu: "JEUX EXTÉRIEURS", t: 0.0, duree: 1.2}]}
+  - {id: f7-tapas, source: rushes/IMG_8196.mov, debut: 0.05, duree: 1.0, garder_son: false,
+     textes: [{contenu: "TAPAS & RAFRAÎCHISSEMENTS", t: 0.0, duree: 0.9}]}
+
+  # ── G. Appel à l'action ───────────────────────────────────────────────────
+  - {id: g1-cta, role: cta, source: rushes/IMG_9877.mov, debut: 0.4, duree: 2.6,
+     garder_son: false, zoom: {de: 1.0, vers: 1.05},
+     textes: [{contenu: "UCPA SPORT STATION BORDEAUX", t: 0.0, duree: 2.7},
+              {contenu: "INSCRIS-TOI", t: 0.2, duree: 2.5, style: titre, position: 0.38}]}
+
+# Sous-titres = script de la voix off (voir voix-off.md).
+# Volontairement absents pendant l'énumération des activités (2,8 s → 13,5 s) :
+# les étiquettes de sport portent déjà le message, et sur les trois plans à
+# titre plein cadre, pour ne pas surcharger.
+sous_titres:
+  lignes:
+    - {debut: 0.15,  fin: 2.75,  texte: "À Bordeaux y'a un endroit pour tout faire"}
+    - {debut: 13.60, fin: 15.15, texte: "Tout ça au même endroit"}
+    - {debut: 15.65, fin: 17.15, texte: "Et pour la rentrée"}
+    - {debut: 17.35, fin: 22.15, texte: "la liberté du sans engagement au prix du avec engagement, à vie"}
+    - {debut: 22.35, fin: 23.60, texte: "Frais de dossier offerts"}
+    - {debut: 23.70, fin: 24.90, texte: "40 euros d'économisés"}
+    - {debut: 25.05, fin: 26.55, texte: "Jusqu'au 30 septembre"}
+    - {debut: 26.70, fin: 28.35, texte: "packs heures pleines ou creuses"}
+    - {debut: 32.10, fin: 34.60, texte: "C'est gratuit et ouvert à tous"}
+    - {debut: 34.70, fin: 36.60, texte: "Initiations escalade, squash, padel et golf"}
+    - {debut: 36.70, fin: 39.60, texte: "Y'a de quoi occuper toute la famille"}
+    - {debut: 39.85, fin: 42.30, texte: "Inscris-toi sur le site UCPA"}
