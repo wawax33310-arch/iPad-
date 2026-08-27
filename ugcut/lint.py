@@ -111,8 +111,10 @@ def analyser_montage(spec: Spec) -> list[Constat]:
     lignes = lignes_sous_titres(spec)
     # l'accroche peut être attachée au premier plan, posée sur la timeline,
     # ou portée par les sous-titres
-    texte_tot = any(t.t <= 1.0 for t in spec.plans[0].textes)
-    texte_tot = texte_tot or any(t.t <= 1.0 for t in spec.textes)
+    texte_tot = spec.textes_actifs and (
+        any(t.t <= 1.0 for t in spec.plans[0].textes)
+        or any(t.t <= 1.0 for t in spec.textes)
+    )
     texte_st = any(l.debut <= 1.0 for l in lignes)
     if not (texte_tot or texte_st):
         constats.append(Constat(ALERTE, "hook_texte", (

@@ -183,6 +183,9 @@ textes:
   - {contenu: "8 ACTIVITÉS\n1 SEUL ENDROIT", t: 0.15, duree: 2.7, style: impact}
 ```
 
+`textes_actifs: false` à la racine coupe d'un coup toutes les incrustations —
+étiquettes de plan et accroches de timeline — sans effacer leurs déclarations.
+
 ### `sous_titres`
 
 ```yaml

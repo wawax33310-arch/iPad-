@@ -62,6 +62,15 @@ class TestRegles(unittest.TestCase):
                            textes=[{"contenu": "8 ACTIVITÉS", "t": 0.15, "duree": 2.7}])
         self.assertNotIn("hook_texte", codes(constats, ALERTE))
 
+    def test_accroche_eteinte_ne_compte_pas(self):
+        """Une accroche déclarée mais désactivée n'est pas une accroche."""
+        plans = [{"source": "h.mp4", "role": "hook", "duree": 2.0}] + BON["plans"][1:]
+        constats = montage(plans, BON["durees"], musique=BON["musique"],
+                           sous_titres={"lignes": [{"debut": 2.0, "fin": 9.0, "texte": "x"}]},
+                           textes=[{"contenu": "8 ACTIVITÉS", "t": 0.15, "duree": 2.7}],
+                           textes_actifs=False)
+        self.assertIn("hook_texte", codes(constats, ALERTE))
+
     def test_sans_sous_titres(self):
         constats = montage(BON["plans"], BON["durees"], musique=BON["musique"])
         self.assertIn("sous_titres", codes(constats, ALERTE))

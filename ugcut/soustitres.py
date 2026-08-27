@@ -272,8 +272,9 @@ def lignes_sous_titres(spec: Spec) -> list[Ligne]:
 def construire(spec: Spec, segments, cible: str) -> str | None:
     """Écrit le .ass complet. Retourne None s'il n'y a rien à incruster."""
     evenements = evenements_sous_titres(spec, lignes_sous_titres(spec))
-    evenements += evenements_stickers(spec, segments)
-    evenements += evenements_textes(spec)
+    if spec.textes_actifs:
+        evenements += evenements_stickers(spec, segments)
+        evenements += evenements_textes(spec)
     if not evenements:
         return None
     with open(cible, "w", encoding="utf-8") as fh:

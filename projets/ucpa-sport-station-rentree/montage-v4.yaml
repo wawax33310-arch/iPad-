@@ -44,6 +44,10 @@ style:
   sticker_taille: 48
   sticker_position: 0.135
 
+# Aucun texte incrusté : l'image et le rythme portent seuls.
+# Les déclarations restent en place — `textes_actifs: true` les rallume.
+textes_actifs: false
+
 textes:
   - {contenu: "8 ACTIVITÉS\n1 SEUL ENDROIT", t: 0.15, duree: 3.60, style: impact,
      position: 0.38}

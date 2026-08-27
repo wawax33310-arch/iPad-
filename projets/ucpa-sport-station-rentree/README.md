@@ -4,7 +4,7 @@ Quatre montages, sur les mêmes rushes :
 
 | | Durée | Plans | Plan moyen | Caractère |
 |---|---|---|---|---|
-| `montage-v4.yaml` **(livré en dernier)** | 44,00 s | 41 | 1,1 s | Calé sur « Alive » (Empire of the Sun), 120 BPM : chaque coupe sur un temps, chaque section sur une mesure |
+| `montage-v4.yaml` **(livré en dernier)** | 44,00 s | 41 | 1,1 s | Calé sur « Alive » (Empire of the Sun), 120 BPM : chaque coupe sur un temps, chaque section sur une mesure. **Sans aucun texte incrusté** |
 | `montage-v3.yaml` | 42,6 s | 42 | 1,0 s | Le plus dynamique : mouvement sur chaque plan, plans larges accélérés, rythme irrégulier |
 | `montage-v2.yaml` | 44,4 s | 31 | 1,4 s | Mots-clés plein cadre, sound design, speed ramp |
 | `montage.yaml` | 42,3 s | 28 | 1,5 s | Première version, plus sobre, sans effets sonores |
@@ -31,6 +31,16 @@ Vérifié sur le fichier rendu par détection de plans : 35 des 37 coupes
 détectées tombent sur un temps à moins d'une image, écart moyen 9 ms. Les deux
 restantes sont les fondus au blanc, que le détecteur situe au milieu du flash —
 le flash, lui, se résout bien sur le temps.
+
+**Aucun texte à l'image** : `textes_actifs: false` éteint d'un coup les
+étiquettes d'activité, les mots-clés plein cadre et l'accroche. Les
+déclarations restent dans le fichier — repasser à `true` les rallume toutes.
+
+Conséquence à garder en tête : sans texte, sans sous-titres et sans voix off,
+la vidéo ne porte plus aucun des trois messages (l'offre, la date des portes
+ouvertes, l'appel à l'action). Elle fonctionne comme un film d'ambiance ; les
+messages doivent alors venir de la voix off, de la légende du post, ou de
+textes ajoutés à la publication.
 
 **La musique n'est pas incrustée** : je n'ai pas le fichier, et « Alive » est un
 titre commercial. Deux façons de la poser :

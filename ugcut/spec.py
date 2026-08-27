@@ -212,6 +212,7 @@ class Spec:
     musique: Musique | None = None
     voix_off: VoixOff | None = None
     textes: list[Texte] = field(default_factory=list)   # posés sur la timeline
+    textes_actifs: bool = True      # coupe d'un coup toutes les incrustations
     variantes: list[Plan] = field(default_factory=list)
     effets_sonores: list[Effet] = field(default_factory=list)
     effets_gain_db: float = -6.0
@@ -516,6 +517,7 @@ def depuis_dict(brut: dict, *, racine: str = ".", chemin: str = "") -> Spec:
         plans=plans,
         sous_titres=_lire_sous_titres(brut.get("sous_titres")),
         textes=_lire_textes(brut.get("textes"), "textes."),
+        textes_actifs=bool(brut.get("textes_actifs", True)),
         musique=musique,
         voix_off=voix_off,
         variantes=variantes,

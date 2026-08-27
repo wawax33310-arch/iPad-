@@ -157,6 +157,22 @@ class TestFichierAss(unittest.TestCase):
         self.assertIn("0:00:00.15,0:00:02.85", contenu)
         self.assertIn("8 ACTIVITÉS", contenu)
 
+    def test_textes_desactives(self):
+        """`textes_actifs: false` coupe étiquettes et accroches, sans les effacer."""
+        spec = depuis_dict({
+            "plans": [{"source": "a.mp4"}],
+            "sous_titres": {"actif": False},
+            "textes": [{"contenu": "ACCROCHE", "t": 0.1, "duree": 2.0}],
+            "textes_actifs": False,
+        })
+        segment = self._segment([Texte(contenu="ESCALADE", t=0.0, duree=1.0)], 0.0, 2.0)
+        with tempfile.TemporaryDirectory() as dossier:
+            cible = os.path.join(dossier, "t.ass")
+            self.assertIsNone(construire(spec, [segment], cible))
+        # les déclarations restent en place : l'interrupteur ne les efface pas
+        self.assertEqual(len(spec.textes), 1)
+        self.assertEqual(len(segment.plan.textes), 1)
+
     def test_sans_texte_aucun_fichier(self):
         spec = depuis_dict({"plans": [{"source": "a.mp4"}]})
         segment = self._segment([], 0.0, 2.0)
